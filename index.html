@@ -2,27 +2,63 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Yuki Game Versions</title>
+    <title>Mario Game Research Versions</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
-        h1 { margin-bottom: 40px; }
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        h1, h2 { text-align: center; }
+        h1 { margin-bottom: 10px; }
+        h2 { margin-top: 40px; }
+        p { line-height: 1.6; }
         ul { list-style: none; padding: 0; }
-        li { margin: 20px 0; }
-        a { text-decoration: none; font-size: 24px; color: #0077cc; }
-        a:hover { color: #ff6600; }
-        a:visited { color: #808080; }
+        li { margin: 15px 0; }
+        a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #0077cc;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        a.button:hover {
+            background-color: #005fa3;
+        }
+        .note { font-size: 0.9em; color: #555; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>Mario Game Versions</h1>
+    <h1>Mario Game Research Versions</h1>
+    <p>このリポジトリは、卒業研究で制作している <strong>Mario ゲーム改良版</strong> の各バージョンをまとめたものです。<br>
+    各バージョンで操作方法やルールを変え、ゲームプレイや左右差是正、タイムアタックなどの効果を検証しています。</p>
+    <h2>バージョン一覧</h2>
     <ul>
-        <li><a href="mario_CR/">Mario_CR</a></li>
-        <li><a href="mario_CR_LR/">Mario_CR_LR</a></li>
-        <li><a href="mario_keyboard/">Mario_keyboard</a></li>
-        <li><a href="mario_timeattack_keyboard/">Mario_timeattack_keyboard</a></li>
-        <li><a href="mario_timed_keyboard/">Mario_timed_keyboard</a></li>
-        <li><a href="mario_timeattack_CR/">Mario_timeattack_CR</a></li>
-        <li><a href="mario_timed_CR/">Mario_timed_CR</a></li>
+        <li><a class="button" href="mario_CR/">mario_CR</a> - コントローラ操作版（基本版）</li>
+        <li><a class="button" href="mario_CR_LR/">mario_CR_LR</a> - コントローラ操作 & 左右反転版（左右差是正目的）</li>
+        <li><a class="button" href="mario_timeattack_keyboard/">mario_timeattack_keyboard</a> - キーボード & 目標スコア到達型</li>
+        <li><a class="button" href="mario_timed_keyboard/">mario_timed_keyboard</a> - キーボード & 制限時間内スコア型</li>
+        <li><a class="button" href="mario_timeattack_CR/">mario_timeattack_CR</a> - コントローラ & 目標スコア到達型</li>
+        <li><a class="button" href="mario_timed_CR/">mario_timed_CR</a> - コントローラ & 制限時間内スコア型</li>
     </ul>
+
+    <h2>使い方</h2>
+    <ol>
+    <li>各フォルダ内の <code>index.html</code> をブラウザで開く</li>
+    <li>ゲームが起動します</li>
+    <li>各バージョンごとに操作方法やルールが異なるので注意してください</li>
+    </ol>
+
+    <p class="note">
+    補足：<br>
+    - バージョン名に <strong>CR</strong> が付くものはコントローラ操作<br>
+    - <strong>LR</strong> は左右反転操作<br>
+    - <strong>timeattack</strong> は目標スコア到達型<br>
+    - <strong>timed</strong> は制限時間内スコア型
+    </p>
 </body>
 </html>
