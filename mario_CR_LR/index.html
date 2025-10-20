@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横スクロールゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>横スクロールゲーム</h1>
+    <div id="gamepadInfo">
+        <div id="connectionInstructions">
+            <p><strong>操作方法：</strong></p>
+        <ul>
+            <li>移動：右スティック（左右）</li>
+            <li>ジャンプ：十字ボタン右</li>
+            <li>リスタート：十字ボタン左</li>
+        </ul>
+        <button onclick="checkGamepadConnection()" style="margin: 5px 5px 5px 0; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            コントローラー接続を再チェック
+        </button>
+        <button onclick="stabilizeConnection()" style="margin: 5px 0; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Mac接続安定化
+        </button>
+        <p><small>※接続できない場合は、ブラウザのコンソール（F12）で詳細情報を確認してください</small></p>
+    </div>
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+    <script src="script.js"></script>
+</body>
+</html>
