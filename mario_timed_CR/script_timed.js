@@ -31,6 +31,11 @@ let startTime = 0;
 let remainingTime = 0; // 制限時間用
 let timerInterval = null; // タイマーのID
 
+// 統計カウンター
+let obstacleCollisions = 0; // ブロック衝突数
+let enemyCollisions = 0; // 敵衝突数
+let coinsCollected = 0; // 獲得コイン数
+
 // --- クラス定義 ---
 class Player {
     constructor() {
@@ -56,20 +61,15 @@ class Coin {
 }
 
 class Enemy {
-    constructor({ x, y, platform }) { this.position = { x, y }; this.velocity = { x: -2, y: 0 }; this.width = 40; this.height = 40; this.patrolRange = { left: platform.position.x, right: platform.position.x + platform.width - this.width }; }
+    constructor({ x, y, platform }) { this.position = { x, y }; this.velocity = { x: -2, y: 0 }; this.width = 40; this.height = 40; this.patrolRange = { left: platform.position.x, right: platform.position.x + platform.width - this.width }; this.collided = false; }
     draw(offset) { ctx.fillStyle = 'purple'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); }
     update() { this.position.x += this.velocity.x; if (this.position.x <= this.patrolRange.left || this.position.x >= this.patrolRange.right) { this.velocity.x *= -1; } }
 }
 
 class Obstacle {
-    constructor({ x, y }) { this.position = { x, y }; this.velocity = { x: -3, y: 0 }; this.width = 50; this.height = 50; }
+    constructor({ x, y }) { this.position = { x, y }; this.velocity = { x: -3, y: 0 }; this.width = 50; this.height = 50; this.collided = false; }
     draw(offset) { ctx.fillStyle = 'brown'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); }
     update() { this.position.x += this.velocity.x; }
-}
-
-class Goal {
-    constructor({ x, y }) { this.position = { x, y }; this.width = 10; this.height = 100; }
-    draw(offset) { ctx.fillStyle = 'black'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); ctx.fillStyle = 'blue'; ctx.beginPath(); ctx.moveTo(this.position.x - offset + this.width, this.position.y); ctx.lineTo(this.position.x - offset + this.width + 40, this.position.y + 20); ctx.lineTo(this.position.x - offset + this.width, this.position.y + 40); ctx.closePath(); ctx.fill(); }
 }
 
 class Cloud {
@@ -85,7 +85,7 @@ class Cloud {
 }
 
 // --- 変数定義 ---
-let player, platforms, coins, enemies, obstacles, goal, clouds;
+let player, platforms, coins, enemies, obstacles, clouds;
 let keys = { right: { pressed: false }, left: { pressed: false } };
 
 // --- 初期化 ---
@@ -97,13 +97,17 @@ function init() {
     keys.left.pressed = false;
     player = new Player();
     platforms = [new Platform({ x: 0, y: 450, width: 500 })];
-    goal = new Goal({ x: STAGE_LENGTH, y: 350 });
     coins = []; enemies = []; obstacles = []; clouds = [];
     lastPlatformX = 500;
     lastObstacleX = 700;
     for (let i = 0; i < 20; i++) { // 20個の雲を生成
-        clouds.push(new Cloud({ x: Math.random() * STAGE_LENGTH, y: Math.random() * 150, size: Math.random() * 20 + 10 }));
+        clouds.push(new Cloud({ x: Math.random() * 50000, y: Math.random() * 150, size: Math.random() * 20 + 10 }));
     }
+
+    // 統計カウンターをリセット
+    obstacleCollisions = 0;
+    enemyCollisions = 0;
+    coinsCollected = 0;
 
     // timedモードの初期化
     startTime = Date.now();
@@ -166,17 +170,24 @@ function drawMessage(message, subMessage, finalScore) {
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
     ctx.font = '60px sans-serif';
-    ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 60);
-    if (finalScore !== undefined) {
+    ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 120);
+    
+    if (gameMode === 'timed' && gameState === 'gameOver') {
+        ctx.font = '30px sans-serif';
+        ctx.fillText('獲得スコア:', canvas.width / 2, canvas.height / 2 - 60);
+        ctx.fillText(`${finalScore}`, canvas.width / 2, canvas.height / 2 - 20);
+        ctx.font = '24px sans-serif';
+        ctx.fillText(`ブロック衝突: ${obstacleCollisions}回`, canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText(`敵衝突: ${enemyCollisions}回`, canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText(`獲得コイン: ${coinsCollected}個`, canvas.width / 2, canvas.height / 2 + 80);
+        ctx.font = '20px sans-serif';
+        ctx.fillText(subMessage, canvas.width / 2, canvas.height / 2 + 120);
+    } else if (finalScore !== undefined) {
         ctx.font = '30px sans-serif';
         ctx.fillText(`スコア: ${finalScore}`, canvas.width / 2, canvas.height / 2);
-    }
-    if (gameMode === 'timed' && gameState === 'gameOver') {
         ctx.font = '24px sans-serif';
-        ctx.fillText(`時間切れ！`, canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText(subMessage, canvas.width / 2, canvas.height / 2 + 50);
     }
-    ctx.font = '24px sans-serif';
-    ctx.fillText(subMessage, canvas.width / 2, canvas.height / 2 + 50);
 }
 
 function drawScore() {
@@ -281,8 +292,8 @@ function debugGamepadInfo() {
 
 // --- オブジェクト生成 ---
 function generateObjects() {
-    // プラットフォームと付随オブジェクトの生成
-    while (lastPlatformX < scrollOffset + canvas.width + 200 && lastPlatformX < STAGE_LENGTH) {
+    // プラットフォームと付随オブジェクトの生成（無限に生成）
+    while (lastPlatformX < scrollOffset + canvas.width + 200) {
         const gap = Math.random() * 200 + 100;
         const width = Math.random() * 250 + 150;
         const newX = lastPlatformX + gap;
@@ -294,8 +305,8 @@ function generateObjects() {
         } else if (rand < 0.95) { enemies.push(new Enemy({ x: newX + width / 2, y: newY - 40, platform: platform })); }
         lastPlatformX = newX + width;
     }
-    // 浮遊障害物の生成
-    while (lastObstacleX < scrollOffset + canvas.width + 200 && lastObstacleX < STAGE_LENGTH) {
+    // 浮遊障害物の生成（無限に生成）
+    while (lastObstacleX < scrollOffset + canvas.width + 200) {
         const gap = Math.random() * 400 + 400;
         const newX = lastObstacleX + gap;
         const newY = Math.random() * (canvas.height - 150) + 50;
@@ -408,13 +419,37 @@ function animate() {
         });
 
         // その他の衝突判定
-        obstacles.forEach(o => { if (player.position.x < o.position.x + o.width && player.position.x + player.width > o.position.x && player.position.y < o.position.y + o.height && player.position.y + player.height > o.position.y) gameState = 'gameOver'; });
-        enemies.forEach((e, i) => { if (player.position.x < e.position.x + e.width && player.position.x + player.width > e.position.x && player.position.y < e.position.y + e.height && player.position.y + player.height > e.position.y) { if (player.velocity.y > 0 && player.position.y + player.height - player.velocity.y <= e.position.y) { enemies.splice(i, 1); score += 200; player.velocity.y = -JUMP_POWER / 2; } else { gameState = 'gameOver'; } } });
-        if (gameState === 'playing') { coins.forEach(c => { if (c.active) { const dist = Math.hypot(player.position.x + player.width/2 - c.position.x, player.position.y+player.height/2 - c.position.y); if (dist < player.width / 2 + c.radius) { c.active = false; score += COIN_SCORE; } } }); }
-        if (player.position.y > canvas.height + 100) gameState = 'gameOver';
-
-        // ゴール判定
-        if (player.position.x > goal.position.x) { gameState = 'cleared'; }
+        obstacles.forEach(o => { 
+            const isColliding = player.position.x < o.position.x + o.width && player.position.x + player.width > o.position.x && player.position.y < o.position.y + o.height && player.position.y + player.height > o.position.y;
+            if (isColliding && !o.collided) { 
+                score -= 100; 
+                if (score < 0) score = 0; 
+                obstacleCollisions++;
+                o.collided = true; 
+            } else if (!isColliding) {
+                o.collided = false;
+            }
+        });
+        enemies.forEach((e, i) => { 
+            const isColliding = player.position.x < e.position.x + e.width && player.position.x + player.width > e.position.x && player.position.y < e.position.y + e.height && player.position.y + player.height > e.position.y;
+            if (isColliding) { 
+                if (player.velocity.y > 0 && player.position.y + player.height - player.velocity.y <= e.position.y && !e.collided) { 
+                    enemies.splice(i, 1); 
+                    score += 200; 
+                    player.velocity.y = -JUMP_POWER / 2; 
+                } else if (!e.collided) { 
+                    score -= 200; 
+                    if (score < 0) score = 0; 
+                    enemyCollisions++;
+                    e.collided = true; 
+                }
+            } else {
+                e.collided = false;
+            }
+        });
+        if (gameState === 'playing') { coins.forEach(c => { if (c.active) { const dist = Math.hypot(player.position.x + player.width/2 - c.position.x, player.position.y+player.height/2 - c.position.y); if (dist < player.width / 2 + c.radius) { c.active = false; score += COIN_SCORE; coinsCollected++; } } }); }
+        // 落下したら少し後ろに戻す
+        if (player.position.y > canvas.height + 100) { player.position.x -= 50; player.position.y = 100; player.velocity = { x: 0, y: 0 }; }
 
         // 4. カメラとオブジェクト管理
         if (player.position.x > scrollOffset + canvas.width / 3) scrollOffset = player.position.x - canvas.width / 3;
@@ -435,12 +470,10 @@ function animate() {
     obstacles.forEach(o => o.draw(scrollOffset));
     coins.forEach(c => c.draw(scrollOffset));
     enemies.forEach(e => e.draw(scrollOffset));
-    goal.draw(scrollOffset);
     player.draw(scrollOffset);
     drawScore();
 
-    if (gameState === 'cleared') drawMessage('クリア！', 'Enterキーまたは左ボタンでリスタート', score);
-    if (gameState === 'gameOver') drawMessage('ゲームオーバー', 'Enterキーまたは左ボタンでリスタート', score);
+    if (gameState === 'gameOver') drawMessage('終了！', 'Enterキーまたは左ボタンでリスタート', score);
 }
 
 // --- イベントリスナー ---
