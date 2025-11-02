@@ -53,6 +53,7 @@ let gameMode = 'timed'; // このファイルはtimedモード
 let startTime = 0;
 let remainingTime = 0; // 制限時間用
 let timerInterval = null; // タイマーのID
+let timerStarted = false; // タイマーが開始されたかどうか
 
 // 統計カウンター
 let obstacleCollisions = 0; // ブロック衝突数
@@ -476,20 +477,7 @@ function init() {
     if (timerInterval) clearInterval(timerInterval); // 既存のタイマーがあればクリア
 
     remainingTime = 60; // 60秒
-    timerInterval = setInterval(() => {
-        if (gameState === 'playing') {
-            remainingTime--;
-            if (remainingTime <= 0) {
-                gameState = 'gameOver';
-                clearInterval(timerInterval);
-                // ゲームオーバー時にBGMを一時停止
-                if (bgm) {
-                    bgm.pause();
-                    bgm.currentTime = 0; // 再生位置を最初に戻す
-                }
-            }
-        }
-    }, 1000);
+    timerStarted = false; // タイマーはまだ開始していない（最初の操作を待つ）
 
     // BGMを再生開始（ループ再生）
     startBGM();
@@ -514,6 +502,35 @@ function startBGM() {
                 console.log('BGMの再生に失敗しました:', error);
             });
         }
+    }
+}
+
+// BGM停止関数
+function stopBGM() {
+    if (bgm && !bgm.paused) {
+        bgm.pause();
+        bgm.currentTime = 0; // 再生位置を最初に戻す
+        console.log('BGMが停止されました');
+    }
+}
+
+// タイマー開始関数（最初の操作で呼び出される）
+function startTimer() {
+    if (!timerStarted && gameState === 'playing') {
+        timerStarted = true;
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            if (gameState === 'playing') {
+                remainingTime--;
+                if (remainingTime <= 0) {
+                    gameState = 'gameOver';
+                    clearInterval(timerInterval);
+                    // ゲームオーバー時にBGMを停止
+                    stopBGM();
+                }
+            }
+        }, 1000);
+        console.log('タイマーが開始されました');
     }
 }
 
@@ -627,7 +644,11 @@ function drawScore() {
     ctx.textAlign = 'left';
     ctx.fillText(`スコア: ${score}`, 20, 40);
     if (gameMode === 'timed') {
-        ctx.fillText(`残り時間: ${remainingTime}秒`, 20, 70);
+        if (timerStarted) {
+            ctx.fillText(`残り時間: ${remainingTime}秒`, 20, 70);
+        } else {
+            ctx.fillText(`準備中... ボタンを押して開始`, 20, 70);
+        }
     }
     
     // コントローラー接続状態の表示
@@ -828,9 +849,13 @@ function animate() {
         if (rightStickX < -0.5) { // 左に倒す
             keys.left.pressed = true;
             keys.right.pressed = false;
+            // タイマーを開始
+            startTimer();
         } else if (rightStickX > 0.5) { // 右に倒す
             keys.right.pressed = true;
             keys.left.pressed = false;
+            // タイマーを開始
+            startTimer();
         } else { // ニュートラル
             keys.left.pressed = false;
             keys.right.pressed = false;
@@ -847,6 +872,8 @@ function animate() {
             }
             // BGMを開始
             startBGM();
+            // タイマーを開始
+            startTimer();
         } else {
             gamepadButtons.rightPressed = false;
         }
@@ -873,6 +900,11 @@ function animate() {
     }
 
     if (gameState === 'playing') {
+        // 最初の操作でタイマーを開始
+        if (keys.right.pressed || keys.left.pressed) {
+            startTimer();
+        }
+        
         // 1. 入力
         if (keys.right.pressed) player.velocity.x = PLAYER_SPEED; else if (keys.left.pressed) player.velocity.x = -PLAYER_SPEED; else player.velocity.x = 0;
         
@@ -980,7 +1012,11 @@ function animate() {
     player.draw(scrollOffset);
     drawScore();
 
-    if (gameState === 'gameOver') drawMessage('終了！', 'Enterキーまたは十字ボタン左でリスタート', score);
+    if (gameState === 'gameOver') {
+        // ゲーム終了時にBGMを停止
+        stopBGM();
+        drawMessage('終了！', 'Enterキーまたは十字ボタン左でリスタート', score);
+    }
 }
 
 // --- イベントリスナー ---
@@ -993,10 +1029,15 @@ window.addEventListener('keydown', (e) => {
         e.preventDefault();
     }
     if (gameState === 'playing') { 
+        // タイマーを開始
+        startTimer();
         switch (code) { 
             case 'ArrowLeft': case 'KeyA': keys.left.pressed = true; break; 
             case 'ArrowRight': case 'KeyD': keys.right.pressed = true; break; 
-            case 'Space': case 'ArrowUp': case 'KeyW': player.velocity.y = -JUMP_POWER; break; 
+            case 'Space': case 'ArrowUp': case 'KeyW': 
+                player.velocity.y = -JUMP_POWER; 
+                startTimer(); // ジャンプでもタイマー開始
+                break; 
         } 
     } else { 
         if (code === 'Enter') {
