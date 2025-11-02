@@ -45,12 +45,106 @@ let coinsCollected = 0; // 獲得コイン数
 // --- クラス定義 ---
 class Player {
     constructor() {
-        this.position = { x: 100, y: 100 };
+        this.position = { x: 100, y: 350 }; // 地面（y=400）の上に配置
         this.velocity = { x: 0, y: 0 };
-        this.width = 30;
-        this.height = 50;
+        this.width = 40; // 少し大きめに
+        this.height = 60; // 少し大きめに
+        this.onGround = false; // 地面にいるかどうか
     }
-    draw(offset) { ctx.fillStyle = 'red'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); }
+    draw(offset) {
+        const x = this.position.x - offset;
+        const y = this.position.y;
+        const w = this.width;
+        const h = this.height;
+        
+        ctx.save();
+        
+        // うめこの画像が読み込まれている場合は、画像を描画
+        if (umekoImage && umekoImage.complete) {
+            ctx.drawImage(umekoImage, x, y, w, h);
+        } else {
+            // 画像が読み込まれていない場合は、ピクセルアートで描画（フォールバック）
+            
+            // 帽子（赤）
+            ctx.fillStyle = '#E60012';
+            // 帽子のてっぺん
+            ctx.fillRect(x + w*0.2, y, w*0.6, h*0.10);
+            // 帽子の縁（つば）
+            ctx.fillRect(x + w*0.1, y + h*0.10, w*0.8, h*0.06);
+            // 帽子の白いハイライト
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + w*0.35, y + h*0.02, w*0.10, h*0.06);
+            
+            // 顔（肌色）
+            ctx.fillStyle = '#FFDBAC';
+            ctx.fillRect(x + w*0.2, y + h*0.16, w*0.6, h*0.28);
+            
+            // もみあげ（髪）
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x + w*0.15, y + h*0.16, w*0.08, h*0.10);
+            ctx.fillRect(x + w*0.77, y + h*0.16, w*0.08, h*0.10);
+            
+            // 目（白い四角に黒い瞳）- 右目のみ見える
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + w*0.60, y + h*0.22, w*0.08, h*0.08);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + w*0.62, y + h*0.24, w*0.04, h*0.04);
+            
+            // 鼻（肌色）
+            ctx.fillStyle = '#FFCC99';
+            ctx.fillRect(x + w*0.50, y + h*0.30, w*0.06, h*0.06);
+            
+            // 口ひげ（濃い茶色）
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x + w*0.20, y + h*0.36, w*0.60, h*0.10);
+            
+            // 赤いシャツ
+            ctx.fillStyle = '#E60012';
+            // 体部分
+            ctx.fillRect(x + w*0.2, y + h*0.46, w*0.6, h*0.30);
+            // 左腕（体の横に自然に下がる）
+            ctx.fillRect(x - w*0.05, y + h*0.30, w*0.20, h*0.20);
+            // 右腕（少し前に、自然に下がる）
+            ctx.fillRect(x + w*0.85, y + h*0.28, w*0.20, h*0.20);
+            
+            // オーバーオール（青）
+            ctx.fillStyle = '#0066FF';
+            // オーバーオールのズボン部分
+            ctx.fillRect(x + w*0.15, y + h*0.68, w*0.7, h*0.32);
+            // オーバーオールの胸元部分
+            ctx.fillRect(x + w*0.25, y + h*0.46, w*0.5, h*0.22);
+            
+            // オーバーオールのストラップ（青）
+            ctx.fillStyle = '#0066FF';
+            // 左ストラップ
+            ctx.fillRect(x + w*0.15, y + h*0.16, w*0.10, h*0.30);
+            ctx.fillRect(x + w*0.15, y + h*0.46, w*0.15, h*0.08);
+            // 右ストラップ
+            ctx.fillRect(x + w*0.75, y + h*0.16, w*0.10, h*0.30);
+            ctx.fillRect(x + w*0.70, y + h*0.46, w*0.15, h*0.08);
+            
+            // ボタン（黄色）
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(x + w*0.38, y + h*0.54, w*0.06, h*0.06);
+            ctx.fillRect(x + w*0.56, y + h*0.54, w*0.06, h*0.06);
+            
+            // 手袋（白）
+            ctx.fillStyle = '#FFFFFF';
+            // 左手
+            ctx.fillRect(x - w*0.05, y + h*0.48, w*0.20, h*0.12);
+            // 右手
+            ctx.fillRect(x + w*0.85, y + h*0.46, w*0.20, h*0.12);
+            
+            // 靴（茶色）
+            ctx.fillStyle = '#654321';
+            // 左足
+            ctx.fillRect(x - w*0.03, y + h*0.96, w*0.46, h*0.04);
+            // 右足
+            ctx.fillRect(x + w*0.57, y + h*0.96, w*0.46, h*0.04);
+        }
+        
+        ctx.restore();
+    }
     applyGravity() { this.velocity.y += GRAVITY; }
 }
 
@@ -63,36 +157,242 @@ class Platform {
 
 class Coin {
     constructor({ x, y }) { this.position = { x, y }; this.radius = 15; this.active = true; }
-    draw(offset) { if (!this.active) return; ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.arc(this.position.x - offset, this.position.y, this.radius, 0, Math.PI * 2); ctx.fill(); }
+    draw(offset) { 
+        if (!this.active) return; 
+        const x = this.position.x - offset;
+        const y = this.position.y;
+        const r = this.radius;
+        
+        ctx.save();
+        
+        // 外側の縁（盛り上がったリム）- 明るい金色
+        const rimGradient = ctx.createRadialGradient(x, y, r * 0.7, x, y, r);
+        rimGradient.addColorStop(0, '#FFD700'); // 明るい金色
+        rimGradient.addColorStop(1, '#FFA500'); // オレンジ金色
+        ctx.fillStyle = rimGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 内側のコイン本体（やや暗めの金色）
+        const bodyGradient = ctx.createRadialGradient(x - r/4, y - r/4, 0, x, y, r * 0.85);
+        bodyGradient.addColorStop(0, '#FFD700'); // 明るい金色
+        bodyGradient.addColorStop(0.6, '#FFA500'); // オレンジ金色
+        bodyGradient.addColorStop(1, '#DAA520'); // ダークゴールド
+        ctx.fillStyle = bodyGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 中央の縦長長方形（浮き上がっているように見える）- より明るい金色
+        const rectWidth = r * 0.3;
+        const rectHeight = r * 0.8;
+        const rectX = x - rectWidth / 2;
+        const rectY = y - rectHeight / 2;
+        
+        // 長方形の影（下側）
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(rectX + 1, rectY + rectHeight * 0.6, rectWidth, rectHeight * 0.4);
+        
+        // 長方形本体（明るい金色、グラデーション）- 角を丸く
+        const rectGradient = ctx.createLinearGradient(rectX, rectY, rectX, rectY + rectHeight);
+        rectGradient.addColorStop(0, '#FFF8DC'); // 非常に明るい金色
+        rectGradient.addColorStop(0.5, '#FFD700'); // 明るい金色
+        rectGradient.addColorStop(1, '#FFA500'); // オレンジ金色
+        ctx.fillStyle = rectGradient;
+        const cornerRadius = r * 0.1;
+        ctx.beginPath();
+        ctx.moveTo(rectX + cornerRadius, rectY);
+        ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
+        ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius);
+        ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
+        ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight);
+        ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
+        ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius);
+        ctx.lineTo(rectX, rectY + cornerRadius);
+        ctx.quadraticCurveTo(rectX, rectY, rectX + cornerRadius, rectY);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 長方形のハイライト（上部）
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight * 0.3);
+        ctx.globalAlpha = 1.0;
+        
+        // 外側の縁のハイライト（上部左側）
+        const highlightGradient = ctx.createRadialGradient(x - r*0.3, y - r*0.3, 0, x, y, r);
+        highlightGradient.addColorStop(0, '#FFFFFF');
+        highlightGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)');
+        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = highlightGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
 }
 
 class Enemy {
     constructor({ x, y, platform }) { this.position = { x, y }; this.velocity = { x: -2, y: 0 }; this.width = 40; this.height = 40; this.patrolRange = { left: platform.position.x, right: platform.position.x + platform.width - this.width }; this.collided = false; }
-    draw(offset) { ctx.fillStyle = 'purple'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); }
+    draw(offset) { 
+        const x = this.position.x - offset;
+        const y = this.position.y;
+        const w = this.width;
+        const h = this.height;
+        
+        // 👾エイリアンのような見た目
+        // 体（紫）
+        ctx.fillStyle = '#8B00FF';
+        ctx.fillRect(x + w*0.1, y + h*0.2, w*0.8, h*0.6);
+        
+        // 目（白）
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(x + w*0.25, y + h*0.35, w*0.15, 0, Math.PI * 2);
+        ctx.arc(x + w*0.75, y + h*0.35, w*0.15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 瞳（黒）
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(x + w*0.25, y + h*0.35, w*0.08, 0, Math.PI * 2);
+        ctx.arc(x + w*0.75, y + h*0.35, w*0.08, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 脚（4本）
+        ctx.fillStyle = '#8B00FF';
+        ctx.fillRect(x + w*0.1, y + h*0.8, w*0.15, h*0.2);
+        ctx.fillRect(x + w*0.35, y + h*0.8, w*0.15, h*0.2);
+        ctx.fillRect(x + w*0.5, y + h*0.8, w*0.15, h*0.2);
+        ctx.fillRect(x + w*0.75, y + h*0.8, w*0.15, h*0.2);
+    }
     update() { this.position.x += this.velocity.x; if (this.position.x <= this.patrolRange.left || this.position.x >= this.patrolRange.right) { this.velocity.x *= -1; } }
 }
 
 class Obstacle {
     constructor({ x, y }) { this.position = { x, y }; this.velocity = { x: -3, y: 0 }; this.width = 50; this.height = 50; this.collided = false; }
-    draw(offset) { ctx.fillStyle = 'brown'; ctx.fillRect(this.position.x - offset, this.position.y, this.width, this.height); }
+    draw(offset) { 
+        const x = this.position.x - offset;
+        const y = this.position.y;
+        const w = this.width;
+        const h = this.height;
+        
+        // 黒いミサイル風ロケット（横向き）
+        ctx.save();
+        
+        // ロケット本体（黒、横向き）
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.moveTo(x, y + h/2); // 左先端（進行方向）
+        ctx.lineTo(x + w*0.6, y + h*0.25); // 上側
+        ctx.lineTo(x + w*0.8, y + h*0.25); // 上側後
+        ctx.lineTo(x + w, y + h*0.15); // 右尾翼（上）
+        ctx.lineTo(x + w*0.9, y + h/2); // 中央後
+        ctx.lineTo(x + w, y + h*0.85); // 右尾翼（下）
+        ctx.lineTo(x + w*0.8, y + h*0.75); // 下側後
+        ctx.lineTo(x + w*0.6, y + h*0.75); // 下側
+        ctx.closePath();
+        ctx.fill();
+        
+        // 中央部分（少し明るいグレー）
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x + w*0.2, y + h*0.3, w*0.4, h*0.4);
+        
+        // 先端部分（ダークグレー）
+        ctx.fillStyle = '#2a2a2a';
+        ctx.beginPath();
+        ctx.moveTo(x, y + h/2);
+        ctx.lineTo(x + w*0.2, y + h*0.3);
+        ctx.lineTo(x + w*0.2, y + h*0.7);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 尾翼のライン（シルバー）
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.6, y + h*0.25);
+        ctx.lineTo(x + w, y + h*0.15);
+        ctx.moveTo(x + w*0.6, y + h*0.75);
+        ctx.lineTo(x + w, y + h*0.85);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
     update() { this.position.x += this.velocity.x; }
 }
 
 class Cloud {
     constructor({ x, y, size }) { this.position = { x, y }; this.size = size; }
     draw(offset) {
+        const x = this.position.x - offset * 0.5;
+        const y = this.position.y;
+        const s = this.size;
+        
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        ctx.arc(this.position.x - offset * 0.5, this.position.y, this.size, 0, Math.PI * 2);
-        ctx.arc(this.position.x - offset * 0.5 + this.size, this.position.y, this.size, 0, Math.PI * 2);
-        ctx.arc(this.position.x - offset * 0.5 - this.size, this.position.y, this.size, 0, Math.PI * 2);
+        ctx.arc(x, y, s, 0, Math.PI * 2);
+        ctx.arc(x + s, y, s, 0, Math.PI * 2);
+        ctx.arc(x - s, y, s, 0, Math.PI * 2);
+        ctx.arc(x + s/2, y - s/2, s*0.7, 0, Math.PI * 2);
+        ctx.arc(x - s/2, y - s/2, s*0.7, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 
+class Mountain {
+    constructor({ x, y, width, height, colorIndex }) {
+        this.position = { x, y };
+        this.width = width;
+        this.height = height;
+        this.colorIndex = colorIndex || 0; // 色のインデックス（0, 1, 2）
+    }
+    draw(offset) {
+        const groundY = 400;
+        const x = this.position.x - offset * 0.3;
+        const y = groundY - this.height; // 地面の上に配置
+        const w = this.width;
+        const h = this.height;
+        
+        // 画面内にあるかチェック（より緩い条件）
+        if (x + w < -100 || x > canvas.width + 100) return;
+        
+        // 2色のパレット（黄緑と緑）
+        const colors = [
+            '#9ACD32', // 黄緑
+            '#228B22'  // 緑
+        ];
+        
+        ctx.fillStyle = colors[this.colorIndex % colors.length];
+        ctx.beginPath();
+        // 三角形の基本形（頂点付近の角を丸くした形）
+        ctx.moveTo(x, groundY);
+        // 左側の辺（直線で上昇）
+        ctx.lineTo(x + w*0.4, groundY - h*0.85);
+        // 頂点付近を丸く（左側から頂点へ）
+        ctx.quadraticCurveTo(x + w*0.45, groundY - h, x + w*0.5, groundY - h);
+        // 頂点付近を丸く（頂点から右側へ）
+        ctx.quadraticCurveTo(x + w*0.55, groundY - h, x + w*0.6, groundY - h*0.85);
+        // 右側の辺（直線で下降）
+        ctx.lineTo(x + w, groundY);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // 他の山と被っているかチェック
+    overlaps(other) {
+        const margin = 50; // 被りのマージン
+        return !(this.position.x + this.width + margin < other.position.x || 
+                 other.position.x + other.width + margin < this.position.x);
+    }
+}
+
 // --- 変数定義 ---
-let player, platforms, coins, enemies, obstacles, clouds;
+let player, platforms, coins, enemies, obstacles, clouds, mountains;
 let keys = { right: { pressed: false }, left: { pressed: false } };
+let umekoImage = null; // うめこの画像
 
 // --- 初期化 ---
 function init() {
@@ -102,12 +402,49 @@ function init() {
     keys.right.pressed = false;
     keys.left.pressed = false;
     player = new Player();
-    platforms = [new Platform({ x: 0, y: 450, width: 500 })];
-    coins = []; enemies = []; obstacles = []; clouds = [];
-    lastPlatformX = 500;
+    // プレイヤーを地面の上に配置（サイズが大きくなったので調整）
+    player.position.y = 400 - player.height;
+    const groundY = 400;
+    platforms = []; // 最初の足場は不要（邪魔なので削除）
+    coins = []; enemies = []; obstacles = []; clouds = []; mountains = [];
+    lastPlatformX = 0; // 最初の足場がないので0から開始
     lastObstacleX = 700;
-    for (let i = 0; i < 20; i++) { // 20個の雲を生成
+    for (let i = 0; i < 70; i++) { // 70個の雲を生成（さらに増加）
         clouds.push(new Cloud({ x: Math.random() * 50000, y: Math.random() * 150, size: Math.random() * 20 + 10 }));
+    }
+    
+    // 山をランダムに生成（初期生成）
+    let lastMountainX = -500;
+    while (lastMountainX < canvas.width + 1000) {
+        const gap = Math.random() * 600 + 300; // 山の間隔（ランダム）
+        const width = Math.random() * 200 + 150; // 山の幅（ランダム）
+        const height = Math.random() * 150 + 100; // 山の高さ（ランダム）
+        const colorIndex = Math.floor(Math.random() * 2); // ランダムな色
+        
+        const newX = lastMountainX + gap;
+        const mountain = new Mountain({ 
+            x: newX, 
+            y: groundY, 
+            width: width, 
+            height: height,
+            colorIndex: colorIndex
+        });
+        
+        // 他の山と重ならないかチェック
+        let overlaps = false;
+        for (const existingMountain of mountains) {
+            if (mountain.overlaps(existingMountain)) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        if (!overlaps) {
+            mountains.push(mountain);
+            lastMountainX = newX + width;
+        } else {
+            lastMountainX += gap; // 被っている場合は位置を進める
+        }
     }
 
     // 統計カウンターをリセット
@@ -133,17 +470,22 @@ function init() {
 
 // --- 背景描画 ---
 function drawBackground(offset) {
-    // 空
-    ctx.fillStyle = '#70c5ce'; // style.cssから移動した空色
+    // 空（グラデーション）
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    skyGradient.addColorStop(0, '#87CEEB'); // 空色
+    skyGradient.addColorStop(1, '#E0F6FF'); // 薄い空色
+    ctx.fillStyle = skyGradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 近景の地面 (速くスクロール)
-    ctx.fillStyle = '#5C4033'; // 焦茶色
-    const groundScrollOffset = offset * 0.7; // 近景は速く
-    ctx.fillRect(0 - groundScrollOffset % canvas.width, 400, canvas.width * 2, canvas.height - 400);
+    // 地面（2段分の柄を水平表示）
+    const groundY = 400;
+    const groundHeight = canvas.height - groundY;
+    
+    // 地面を描画（2段分だけ）
+    drawGroundPattern(offset, groundY, groundHeight);
 }
 
-// レンガ柄を描画するヘルパー関数
+// レンガ柄を描画するヘルパー関数（足場用）
 function drawBrickPattern(x, y, width, height, offset) {
     const brickWidth = 40;
     const brickHeight = 20;
@@ -166,6 +508,40 @@ function drawBrickPattern(x, y, width, height, offset) {
             ctx.fillRect(brickX + brickGap / 2, brickY + brickGap / 2, brickWidth - brickGap, brickHeight - brickGap);
         }
     }
+    ctx.restore();
+}
+
+// 地面用の柄を描画するヘルパー関数（2段分、正方形のみ、水平表示）
+function drawGroundPattern(offset, groundY, groundHeight) {
+    const blockSize = 40;
+    const dirtColor1 = '#8B4513'; // サドルブラウン
+    const dirtColor2 = '#A0522D'; // シエナ
+
+    ctx.save();
+    
+    // 2段分だけ描画するためのクリップ領域
+    ctx.beginPath();
+    ctx.rect(0, groundY, canvas.width, blockSize * 2);
+    ctx.clip();
+
+    // 2段分だけ描画（地面の上部2段のみ）
+    for (let i = 0; i < 2; i++) {
+        const blockY = groundY + i * blockSize;
+        
+        // 画面幅+余分なブロックを描画してスクロールに対応
+        const numBlocks = Math.ceil(canvas.width / blockSize) + 2;
+        const scrollOffset = offset * 0.7;
+        const startX = -(scrollOffset % blockSize);
+        
+        for (let j = -1; j < numBlocks; j++) {
+            const blockX = startX + j * blockSize;
+            
+            // 地面ブロック（正方形、チェッカーボードパターン）
+            ctx.fillStyle = ((Math.floor((blockX + scrollOffset) / blockSize) + i) % 2 === 0) ? dirtColor1 : dirtColor2;
+            ctx.fillRect(blockX, blockY, blockSize, blockSize);
+        }
+    }
+    
     ctx.restore();
 }
 
@@ -298,17 +674,71 @@ function debugGamepadInfo() {
 
 // --- オブジェクト生成 ---
 function generateObjects() {
+    // 山の生成（無限に生成）
+    const groundY = 400;
+    let furthestMountainX = mountains.length > 0 ? Math.max(...mountains.map(m => m.position.x + m.width)) : 0;
+    while (furthestMountainX < scrollOffset + canvas.width + 1000) {
+        const gap = Math.random() * 600 + 300; // 山の間隔（ランダム）
+        const width = Math.random() * 200 + 150; // 山の幅（ランダム）
+        const height = Math.random() * 150 + 100; // 山の高さ（ランダム）
+        const colorIndex = Math.floor(Math.random() * 2); // ランダムな色
+        
+        const newX = furthestMountainX + gap;
+        const mountain = new Mountain({ 
+            x: newX, 
+            y: groundY, 
+            width: width, 
+            height: height,
+            colorIndex: colorIndex
+        });
+        
+        // 他の山と重ならないかチェック
+        let overlaps = false;
+        for (const existingMountain of mountains) {
+            if (mountain.overlaps(existingMountain)) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        if (!overlaps) {
+            mountains.push(mountain);
+            furthestMountainX = newX + width;
+        } else {
+            furthestMountainX += gap; // 被っている場合は位置を進める
+        }
+    }
+    
     // プラットフォームと付随オブジェクトの生成（無限に生成）
     while (lastPlatformX < scrollOffset + canvas.width + 200) {
         const gap = Math.random() * 200 + 100;
         const width = Math.random() * 250 + 150;
         const newX = lastPlatformX + gap;
-        const newY = Math.random() * 250 + 200;
+        // 足場は地面にかぶらないように生成（足場のheight=30を考慮して、y + 30 < 400、つまりy < 370）
+        // 低めの位置に生成（150から300の間）- 高すぎないように
+        const platformHeight = 30;
+        const maxY = groundY - platformHeight; // 370以下
+        const minY = 150; // 最低位置を150に設定（低めに）
+        const maxPlatformY = Math.min(maxY, 300); // 最大でも300まで（高すぎないように）
+        const newY = Math.random() * (maxPlatformY - minY) + minY; // 150から300の間
         const platform = new Platform({ x: newX, y: newY, width: width });
         platforms.push(platform);
+        
+        // 足場ごとにランダムな数のコインを生成（1-3個）
+        const coinCount = Math.floor(Math.random() * 3) + 1; // 1から3個
+        const coinSpacing = width / (coinCount + 1); // 均等に配置
+        
         const rand = Math.random();
-        if (rand < 0.8) { coins.push(new Coin({ x: newX + width / 2, y: newY - 40 }));
-        } else if (rand < 0.95) { enemies.push(new Enemy({ x: newX + width / 2, y: newY - 40, platform: platform })); }
+        if (rand < 0.7) { // コインを配置する確率
+            for (let i = 0; i < coinCount; i++) {
+                coins.push(new Coin({ 
+                    x: newX + coinSpacing * (i + 1), 
+                    y: newY - 40 
+                }));
+            }
+        } else if (rand < 0.95) { 
+            enemies.push(new Enemy({ x: newX + width / 2, y: newY - 40, platform: platform })); 
+        }
         lastPlatformX = newX + width;
     }
     // 浮遊障害物の生成（無限に生成）
@@ -401,11 +831,16 @@ function animate() {
         obstacles.forEach(o => o.update());
 
         // 3. 衝突判定
-        // Y軸: 地面
-        if (player.position.y + player.height > canvas.height) {
+        // Y軸: 地面（y=400）- プレイヤーのサイズが大きくなったので位置を調整
+        const groundY = 400;
+        player.onGround = false;
+        
+        if (player.position.y + player.height > groundY) {
             player.velocity.y = 0;
-            player.position.y = canvas.height - player.height;
+            player.position.y = groundY - player.height;
+            player.onGround = true;
         }
+        
         // Y軸: 天井
         if (player.position.y < 0) { player.position.y = 0; player.velocity.y = 0; }
 
@@ -414,10 +849,12 @@ function animate() {
             if (player.position.x + player.width > p.position.x && player.position.x < p.position.x + p.width) {
                 if (player.velocity.y > 0 && // 落下中
                     (player.position.y + player.height) >= p.position.y && // 現在の足がめり込んでいる
-                    (player.position.y + player.height - player.velocity.y) <= p.position.y // 1フレーム前は足が上だった
+                    (player.position.y + player.height - player.velocity.y) <= p.position.y && // 1フレーム前は足が上だった
+                    p.position.y < groundY // 地面より上にある場合のみ
                 ) {
                     player.velocity.y = 0;
                     player.position.y = p.position.y - player.height;
+                    player.onGround = true;
                 }
             }
         });
@@ -453,7 +890,7 @@ function animate() {
         });
         if (gameState === 'playing') { coins.forEach(c => { if (c.active) { const dist = Math.hypot(player.position.x + player.width/2 - c.position.x, player.position.y+player.height/2 - c.position.y); if (dist < player.width / 2 + c.radius) { c.active = false; score += COIN_SCORE; coinsCollected++; } } }); }
         // 落下したら少し後ろに戻す
-        if (player.position.y > canvas.height + 100) { player.position.x -= 50; player.position.y = 100; player.velocity = { x: 0, y: 0 }; }
+        if (player.position.y > groundY + 100) { player.position.x -= 50; player.position.y = groundY - player.height; player.velocity = { x: 0, y: 0 }; }
 
         // 4. カメラとオブジェクト管理
         if (player.position.x > scrollOffset + canvas.width / 3) scrollOffset = player.position.x - canvas.width / 3;
@@ -461,6 +898,7 @@ function animate() {
         generateObjects();
         platforms = platforms.filter(p => p.position.x + p.width > scrollOffset);
         clouds = clouds.filter(c => c.position.x - scrollOffset * 0.5 + c.size * 2 > 0); // 画面外に出た雲を削除
+        mountains = mountains.filter(m => m.position.x - scrollOffset * 0.3 + m.width > 0); // 画面外に出た山を削除
         coins = coins.filter(c => c.position.x + c.radius > scrollOffset);
         enemies = enemies.filter(e => e.position.x + e.width > scrollOffset);
         obstacles = obstacles.filter(o => o.position.x + o.width > scrollOffset);
@@ -469,7 +907,19 @@ function animate() {
     // --- 描画処理 ---
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground(scrollOffset); // 背景を描画
-    clouds.forEach(c => c.draw(scrollOffset)); // 雲を奥に描画
+    
+    // 雲を描画（背景レイヤー）
+    clouds.forEach(c => {
+        if (c.position.x - scrollOffset * 0.5 + c.size * 2 > 0 && c.position.x - scrollOffset * 0.5 - c.size * 2 < canvas.width) {
+            c.draw(scrollOffset);
+        }
+    });
+    
+    // 山を描画（雲の後、地面の前の背景レイヤー）
+    mountains.forEach(m => {
+        m.draw(scrollOffset);
+    });
+    
     platforms.forEach(p => p.draw(scrollOffset));
     obstacles.forEach(o => o.draw(scrollOffset));
     coins.forEach(c => c.draw(scrollOffset));
@@ -580,6 +1030,13 @@ document.addEventListener('click', () => {
         checkGamepadConnection();
     }
 });
+
+// うめこの画像を読み込む
+umekoImage = new Image();
+umekoImage.src = '../Umeko.png';
+umekoImage.onload = function() {
+    console.log('うめこの画像が読み込まれました');
+};
 
 init();
 animate();
