@@ -481,7 +481,25 @@ function animate() {
 }
 
 // --- イベントリスナー ---
-window.addEventListener('keydown', ({ code }) => { if (gameState === 'playing') { switch (code) { case 'ArrowLeft': case 'KeyA': keys.left.pressed = true; break; case 'ArrowRight': case 'KeyD': keys.right.pressed = true; break; case 'Space': case 'ArrowUp': case 'KeyW': player.velocity.y = -JUMP_POWER; break; } } else { if (code === 'Enter') init(); } });
+window.addEventListener('keydown', (e) => { 
+    const code = e.code;
+    // ゲームで使用するキーのデフォルト動作を防止
+    if (code === 'ArrowUp' || code === 'ArrowDown' || code === 'ArrowLeft' || code === 'ArrowRight' || code === 'Space') {
+        e.preventDefault();
+    }
+    if (gameState === 'playing') { 
+        switch (code) { 
+            case 'ArrowLeft': case 'KeyA': keys.left.pressed = true; break; 
+            case 'ArrowRight': case 'KeyD': keys.right.pressed = true; break; 
+            case 'Space': case 'ArrowUp': case 'KeyW': player.velocity.y = -JUMP_POWER; break; 
+        } 
+    } else { 
+        if (code === 'Enter') {
+            e.preventDefault();
+            init(); 
+        }
+    } 
+});
 window.addEventListener('keyup', ({ code }) => { if (gameState !== 'playing') return; switch (code) { case 'ArrowLeft': case 'KeyA': keys.left.pressed = false; break; case 'ArrowRight': case 'KeyD': keys.right.pressed = false; break; } });
 
 // Gamepad接続/切断イベントリスナー
