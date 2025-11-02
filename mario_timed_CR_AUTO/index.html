@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横スクロールゲーム (制限時間2分) - 自動左右切替</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>横スクロールゲーム (制限時間2分) - 自動左右切替</h1>
+    <div id="gamepadInfo">
+        <p><strong>スコアリング：</strong></p>
+        <ul>
+            <li>🪙 コイン：スコア +100</li>
+            <li>🚀 ロケットに衝突：スコア -100</li>
+            <li>👾 敵に衝突：スコア -200</li>
+            <li>🦵 敵を踏み潰す：スコア +200</li>
+        </ul>
+        <p><strong>操作方法：</strong></p>
+        <div id="controlsLayout">
+            <div class="controlSection">
+                <p><strong>左利きモード：</strong></p>
+                <ul>
+                    <li>移動：右スティック（左右）</li>
+                    <li>ジャンプ：十字ボタン右</li>
+                    <li>リスタート：十字ボタン左</li>
+                </ul>
+            </div>
+            <div class="controlSection">
+                <p><strong>右利きモード：</strong></p>
+                <ul>
+                    <li>移動：左スティック（左右）</li>
+                    <li>ジャンプ：右ボタン（Bボタン）</li>
+                    <li>リスタート：左ボタン（Xボタン）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+    <!-- BGM用のaudio要素 -->
+    <audio id="bgm" loop preload="auto">
+        <source src="../ABSOLUTE_FUNNY_FIELD.mp3" type="audio/mpeg">
+    </audio>
+    <script src="script_timed.js"></script>
+</body>
+</html>
+
