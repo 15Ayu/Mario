@@ -1,6 +1,20 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// BGM用のaudio要素を取得
+const bgm = document.getElementById('bgm');
+
+// BGMファイルの読み込み確認
+if (bgm) {
+    bgm.addEventListener('loadeddata', () => {
+        console.log('BGMファイルが読み込まれました');
+    });
+    bgm.addEventListener('error', (e) => {
+        console.error('BGMファイルの読み込みエラー:', e);
+        console.log('BGMファイルのパス:', bgm.querySelector('source')?.src);
+    });
+}
+
 // ゲーム設定
 const GRAVITY = 0.5;
 const PLAYER_SPEED = 5;
@@ -24,6 +38,9 @@ let gamepadButtons = {
     leftPressed: false,
     rightPressed: false
 };
+
+// BGM再生フラグ（ユーザー操作後に再生開始）
+let bgmStarted = false;
 
 // 新しいゲームモード関連の変数 (timedモード用)
 let gameMode = 'timed'; // このファイルはtimedモード
@@ -395,6 +412,8 @@ function init() {
     scrollOffset = 0;
     keys.right.pressed = false;
     keys.left.pressed = false;
+    // BGMフラグをリセット（リスタート時にも再生できるように）
+    bgmStarted = false;
     player = new Player();
     // プレイヤーを地面の上に配置（サイズが大きくなったので調整）
     player.position.y = 400 - player.height;
@@ -457,9 +476,39 @@ function init() {
             if (remainingTime <= 0) {
                 gameState = 'gameOver';
                 clearInterval(timerInterval);
+                // ゲームオーバー時にBGMを一時停止
+                if (bgm) {
+                    bgm.pause();
+                    bgm.currentTime = 0; // 再生位置を最初に戻す
+                }
             }
         }
     }, 1000);
+
+    // BGMを再生開始（ループ再生）
+    startBGM();
+}
+
+// BGM再生開始関数
+function startBGM() {
+    if (bgm && !bgmStarted) {
+        bgm.volume = 0.5; // 音量を50%に設定（お好みで調整してください）
+        bgm.currentTime = 0; // 再生位置を最初に戻す
+        bgm.play().then(() => {
+            bgmStarted = true;
+            console.log('BGMが再生されました');
+        }).catch(error => {
+            // 自動再生がブロックされた場合のエラーハンドリング
+            console.log('BGMの自動再生がブロックされました。ユーザーの操作が必要です:', error);
+        });
+    } else if (bgm && bgmStarted) {
+        // 既に開始されている場合は再生を続ける
+        if (bgm.paused) {
+            bgm.play().catch(error => {
+                console.log('BGMの再生に失敗しました:', error);
+            });
+        }
+    }
 }
 
 // --- 背景描画 ---
@@ -792,6 +841,8 @@ function animate() {
                 player.velocity.y = -JUMP_POWER;
                 gamepadButtons.rightPressed = true;
             }
+            // BGMを開始
+            startBGM();
         } else {
             gamepadButtons.rightPressed = false;
         }
@@ -804,6 +855,8 @@ function animate() {
                 }
                 gamepadButtons.leftPressed = true;
             }
+            // BGMを開始
+            startBGM();
         } else {
             gamepadButtons.leftPressed = false;
         }
@@ -929,6 +982,8 @@ function animate() {
 // --- イベントリスナー ---
 window.addEventListener('keydown', (e) => { 
     const code = e.code;
+    // BGMを開始
+    startBGM();
     // ゲームで使用するキーのデフォルト動作を防止
     if (code === 'ArrowUp' || code === 'ArrowDown' || code === 'ArrowLeft' || code === 'ArrowRight' || code === 'Space') {
         e.preventDefault();
@@ -1004,6 +1059,8 @@ document.addEventListener('keydown', () => {
 
 // マウスクリック時にもコントローラーをチェック
 document.addEventListener('click', () => {
+    // BGMを開始
+    startBGM();
     if (!gamepadConnected) {
         checkGamepadConnection();
     }
