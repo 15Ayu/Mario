@@ -806,10 +806,16 @@ function drawMessage(message, subMessage, finalScore) {
         ctx.strokeText(enemyText, centerX, statsY + spacing);
         ctx.fillText(enemyText, centerX, statsY + spacing);
         
-        // 獲得コイン
-        const coinText = `🪙 獲得コイン: ${coinsCollected}個`;
-        ctx.strokeText(coinText, centerX, statsY + spacing * 2);
-        ctx.fillText(coinText, centerX, statsY + spacing * 2);
+        // 獲得コイン（実際のコイン画像を使用）
+        const coinLabelY = statsY + spacing * 2;
+        const coinText = `獲得コイン: ${coinsCollected}個`;
+        // テキストの幅を測定してコインの位置を調整
+        const textWidth = ctx.measureText(coinText).width;
+        const coinIconX = centerX - textWidth / 2 - 20; // テキストの左側にコインを配置
+        const coinIconY = coinLabelY;
+        drawCoinIcon(coinIconX, coinIconY, 14); // コインを描画（半径14）
+        ctx.strokeText(coinText, centerX, coinLabelY);
+        ctx.fillText(coinText, centerX, coinLabelY);
         ctx.restore();
         
         // リスタート説明
@@ -850,6 +856,80 @@ function drawMessage(message, subMessage, finalScore) {
     }
 }
 
+// コインを描画するヘルパー関数（スコア表示用の小さなサイズ）
+function drawCoinIcon(x, y, radius) {
+    const r = radius || 12; // デフォルト半径12
+    
+    ctx.save();
+    
+    // 外側の縁（盛り上がったリム）- 明るい金色
+    const rimGradient = ctx.createRadialGradient(x, y, r * 0.7, x, y, r);
+    rimGradient.addColorStop(0, '#FFD700'); // 明るい金色
+    rimGradient.addColorStop(1, '#FFA500'); // オレンジ金色
+    ctx.fillStyle = rimGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 内側のコイン本体（やや暗めの金色）
+    const bodyGradient = ctx.createRadialGradient(x - r/4, y - r/4, 0, x, y, r * 0.85);
+    bodyGradient.addColorStop(0, '#FFD700'); // 明るい金色
+    bodyGradient.addColorStop(0.6, '#FFA500'); // オレンジ金色
+    bodyGradient.addColorStop(1, '#DAA520'); // ダークゴールド
+    ctx.fillStyle = bodyGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 中央の縦長長方形（浮き上がっているように見える）- より明るい金色
+    const rectWidth = r * 0.3;
+    const rectHeight = r * 0.8;
+    const rectX = x - rectWidth / 2;
+    const rectY = y - rectHeight / 2;
+    
+    // 長方形の影（下側）
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(rectX + 1, rectY + rectHeight * 0.6, rectWidth, rectHeight * 0.4);
+    
+    // 長方形本体（明るい金色、グラデーション）- 角を丸く
+    const rectGradient = ctx.createLinearGradient(rectX, rectY, rectX, rectY + rectHeight);
+    rectGradient.addColorStop(0, '#FFF8DC'); // 非常に明るい金色
+    rectGradient.addColorStop(0.5, '#FFD700'); // 明るい金色
+    rectGradient.addColorStop(1, '#FFA500'); // オレンジ金色
+    ctx.fillStyle = rectGradient;
+    const cornerRadius = r * 0.1;
+    ctx.beginPath();
+    ctx.moveTo(rectX + cornerRadius, rectY);
+    ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
+    ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius);
+    ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
+    ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight);
+    ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
+    ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius);
+    ctx.lineTo(rectX, rectY + cornerRadius);
+    ctx.quadraticCurveTo(rectX, rectY, rectX + cornerRadius, rectY);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 長方形のハイライト（上部）
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = 0.6;
+    ctx.fillRect(rectX, rectY, rectWidth, rectHeight * 0.3);
+    ctx.globalAlpha = 1.0;
+    
+    // 外側の縁のハイライト（上部左側）
+    const highlightGradient = ctx.createRadialGradient(x - r*0.3, y - r*0.3, 0, x, y, r);
+    highlightGradient.addColorStop(0, '#FFFFFF');
+    highlightGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)');
+    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = highlightGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+}
+
 function drawScore() {
     // フォント設定（ポップで可愛いフォント）
     const popFont = 'bold 32px "Fredoka One", cursive';
@@ -861,9 +941,14 @@ function drawScore() {
     ctx.fillStyle = '#FFD700'; // 金色
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 3;
-    const scoreText = `🪙 ${String(score).padStart(3, '0')}`;
-    ctx.strokeText(scoreText, 15, 45);
-    ctx.fillText(scoreText, 15, 45);
+    const textY = 45; // テキストの位置
+    const textX = 40; // テキストの位置
+    const coinX = textX - 20; // コインを数字により近づける（右側に移動）
+    const coinY = textY - 10; // コインをもう少し高めに配置
+    drawCoinIcon(coinX, coinY, 16); // コインを描画（半径16）
+    const scoreText = String(score).padStart(3, '0');
+    ctx.strokeText(scoreText, textX, textY);
+    ctx.fillText(scoreText, textX, textY);
     ctx.restore();
     
     // 右上: 残り時間の表示（時計アイコン付き）
