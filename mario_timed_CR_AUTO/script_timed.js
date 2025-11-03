@@ -4,6 +4,73 @@ const ctx = canvas.getContext('2d');
 // BGM用のaudio要素を取得
 const bgm = document.getElementById('bgm');
 
+// 効果音用のaudio要素を取得
+const coinSound = document.getElementById('coinSound');
+const explosionSound = document.getElementById('explosionSound');
+const errorSound = document.getElementById('errorSound');
+const retroSound = document.getElementById('retroSound');
+const countdownSound = document.getElementById('countdownSound');
+const gameOverSound = document.getElementById('gameOverSound');
+const jumpSound = document.getElementById('jumpSound');
+
+// 効果音ファイルの読み込み確認
+if (coinSound) {
+    coinSound.addEventListener('loadeddata', () => {
+        console.log('コイン獲得音ファイルが読み込まれました');
+    });
+    coinSound.addEventListener('error', (e) => {
+        console.error('コイン獲得音ファイルの読み込みエラー:', e);
+    });
+}
+if (explosionSound) {
+    explosionSound.addEventListener('loadeddata', () => {
+        console.log('爆発音ファイルが読み込まれました');
+    });
+    explosionSound.addEventListener('error', (e) => {
+        console.error('爆発音ファイルの読み込みエラー:', e);
+    });
+}
+if (errorSound) {
+    errorSound.addEventListener('loadeddata', () => {
+        console.log('エラー音ファイルが読み込まれました');
+    });
+    errorSound.addEventListener('error', (e) => {
+        console.error('エラー音ファイルの読み込みエラー:', e);
+    });
+}
+if (retroSound) {
+    retroSound.addEventListener('loadeddata', () => {
+        console.log('レトロアクション音ファイルが読み込まれました');
+    });
+    retroSound.addEventListener('error', (e) => {
+        console.error('レトロアクション音ファイルの読み込みエラー:', e);
+    });
+}
+if (countdownSound) {
+    countdownSound.addEventListener('loadeddata', () => {
+        console.log('カウントダウン音ファイルが読み込まれました');
+    });
+    countdownSound.addEventListener('error', (e) => {
+        console.error('カウントダウン音ファイルの読み込みエラー:', e);
+    });
+}
+if (gameOverSound) {
+    gameOverSound.addEventListener('loadeddata', () => {
+        console.log('終了音ファイルが読み込まれました');
+    });
+    gameOverSound.addEventListener('error', (e) => {
+        console.error('終了音ファイルの読み込みエラー:', e);
+    });
+}
+if (jumpSound) {
+    jumpSound.addEventListener('loadeddata', () => {
+        console.log('ジャンプ音ファイルが読み込まれました');
+    });
+    jumpSound.addEventListener('error', (e) => {
+        console.error('ジャンプ音ファイルの読み込みエラー:', e);
+    });
+}
+
 // BGMファイルの読み込み確認
 if (bgm) {
     bgm.addEventListener('loadeddata', () => {
@@ -502,6 +569,14 @@ function startBGM() {
         bgm.play().then(() => {
             bgmStarted = true;
             console.log('BGMが再生されました');
+            // BGMが開始されたら、効果音も再生可能にする（事前ロード）
+            if (coinSound) coinSound.load();
+            if (explosionSound) explosionSound.load();
+            if (errorSound) errorSound.load();
+            if (retroSound) retroSound.load();
+            if (countdownSound) countdownSound.load();
+            if (gameOverSound) gameOverSound.load();
+            if (jumpSound) jumpSound.load();
         }).catch(error => {
             // 自動再生がブロックされた場合のエラーハンドリング
             console.log('BGMの自動再生がブロックされました。ユーザーの操作が必要です:', error);
@@ -525,6 +600,32 @@ function stopBGM() {
     }
 }
 
+// 効果音再生関数
+function playSoundEffect(sound, name) {
+    if (sound) {
+        try {
+            sound.volume = 0.7; // 音量を設定
+            sound.currentTime = 0; // 再生位置をリセット
+            const playPromise = sound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log(`効果音（${name}）が再生されました`);
+                }).catch(error => {
+                    console.log(`効果音（${name}）の再生に失敗しました:`, error);
+                    // ユーザー操作が必要な場合、BGMが開始されている場合は再生を試みる
+                    if (bgmStarted) {
+                        sound.play().catch(e => {
+                            console.log(`効果音（${name}）の再試行も失敗:`, e);
+                        });
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(`効果音（${name}）の再生エラー:`, error);
+        }
+    }
+}
+
 // タイマー開始関数（最初の操作で呼び出される）
 function startTimer() {
     if (!timerStarted && gameState === 'playing') {
@@ -533,11 +634,32 @@ function startTimer() {
         timerInterval = setInterval(() => {
             if (gameState === 'playing') {
                 remainingTime--;
+                // 残り時間10秒以下のカウントダウン音を再生
+                if (remainingTime <= 10 && remainingTime > 0) {
+                    playSoundEffect(countdownSound, 'カウントダウン');
+                }
                 if (remainingTime <= 0) {
                     gameState = 'gameOver';
                     clearInterval(timerInterval);
+                    // カウントダウン音を停止
+                    if (countdownSound && !countdownSound.paused) {
+                        countdownSound.pause();
+                        countdownSound.currentTime = 0;
+                    }
                     // ゲームオーバー時にBGMを停止
                     stopBGM();
+                    // 終了音を再生（少し遅延させて確実に再生）
+                    setTimeout(() => {
+                        if (gameOverSound) {
+                            gameOverSound.volume = 0.7;
+                            gameOverSound.currentTime = 0;
+                            gameOverSound.play().then(() => {
+                                console.log('終了音が再生されました');
+                            }).catch(error => {
+                                console.log('終了音の再生に失敗しました:', error);
+                            });
+                        }
+                    }, 100);
                 }
             }
         }, 1000);
@@ -656,7 +778,14 @@ function drawScore() {
     ctx.fillText(`スコア: ${score}`, 20, 40);
     if (gameMode === 'timed') {
         if (timerStarted) {
+            // 残り時間10秒以下は赤色に変更
+            if (remainingTime <= 10) {
+                ctx.fillStyle = 'red';
+            } else {
+                ctx.fillStyle = 'black';
+            }
             ctx.fillText(`残り時間: ${remainingTime}秒`, 20, 70);
+            ctx.fillStyle = 'black'; // 色を戻す
         } else {
             ctx.fillText(`準備中... ボタンを押して開始`, 20, 70);
         }
@@ -867,6 +996,8 @@ function animate() {
                 if (!gamepadButtons.rightPressed && gameState === 'playing' && player.velocity.y === 0) {
                     player.velocity.y = -JUMP_POWER;
                     gamepadButtons.rightPressed = true;
+                    // ジャンプ時の効果音
+                    playSoundEffect(jumpSound, 'ジャンプ');
                 }
                 startBGM();
                 startTimer();
@@ -909,6 +1040,8 @@ function animate() {
                     if (player.velocity.y === 0 || player.velocity.y > -2) {
                         player.velocity.y = -JUMP_POWER;
                         gamepadButtons.rightPressed = true;
+                        // ジャンプ時の効果音
+                        playSoundEffect(jumpSound, 'ジャンプ');
                     }
                 }
                 startBGM();
@@ -990,7 +1123,9 @@ function animate() {
                 score -= 100; 
                 if (score < 0) score = 0; 
                 obstacleCollisions++;
-                o.collided = true; 
+                o.collided = true;
+                // ロケット接触時の効果音
+                playSoundEffect(explosionSound, '爆発');
             } else if (!isColliding) {
                 o.collided = false;
             }
@@ -1001,18 +1136,33 @@ function animate() {
                 if (player.velocity.y > 0 && player.position.y + player.height - player.velocity.y <= e.position.y && !e.collided) { 
                     enemies.splice(i, 1); 
                     score += 200; 
-                    player.velocity.y = -JUMP_POWER / 2; 
+                    player.velocity.y = -JUMP_POWER / 2;
+                    // 敵を踏み潰した時の効果音
+                    playSoundEffect(retroSound, 'レトロアクション'); 
                 } else if (!e.collided) { 
                     score -= 200; 
                     if (score < 0) score = 0; 
                     enemyCollisions++;
-                    e.collided = true; 
+                    e.collided = true;
+                    // モンスター接触時の効果音
+                    playSoundEffect(errorSound, 'エラー');
                 }
             } else {
                 e.collided = false;
             }
         });
-        coins.forEach(c => { if (c.active) { const dist = Math.hypot(player.position.x + player.width/2 - c.position.x, player.position.y+player.height/2 - c.position.y); if (dist < player.width / 2 + c.radius) { c.active = false; score += COIN_SCORE; coinsCollected++; } } });
+        coins.forEach(c => { 
+            if (c.active) { 
+                const dist = Math.hypot(player.position.x + player.width/2 - c.position.x, player.position.y+player.height/2 - c.position.y); 
+                if (dist < player.width / 2 + c.radius) { 
+                    c.active = false; 
+                    score += COIN_SCORE; 
+                    coinsCollected++;
+                    // コイン獲得時の効果音
+                    playSoundEffect(coinSound, 'コイン');
+                } 
+            } 
+        });
         // 落下したら少し後ろに戻す
         if (player.position.y > groundY + 100) { player.position.x -= 50; player.position.y = groundY - player.height; player.velocity = { x: 0, y: 0 }; }
 
@@ -1074,7 +1224,9 @@ window.addEventListener('keydown', (e) => {
             case 'ArrowLeft': case 'KeyA': keys.left.pressed = true; break; 
             case 'ArrowRight': case 'KeyD': keys.right.pressed = true; break; 
             case 'Space': case 'ArrowUp': case 'KeyW': 
-                player.velocity.y = -JUMP_POWER; 
+                player.velocity.y = -JUMP_POWER;
+                // ジャンプ時の効果音
+                playSoundEffect(jumpSound, 'ジャンプ');
                 startTimer(); // ジャンプでもタイマー開始
                 break; 
         } 
