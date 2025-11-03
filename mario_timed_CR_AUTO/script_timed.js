@@ -112,7 +112,7 @@ let bgmStarted = false;
 // 新しいゲームモード関連の変数 (timedモード用)
 let gameMode = 'timed'; // このファイルはtimedモード
 let startTime = 0;
-let remainingTime = 0; // 制限時間用（2分=120秒）
+let remainingTime = 120; // 制限時間用（2分=120秒）初期値を120に設定
 let timerInterval = null; // タイマーのID
 let timerStarted = false; // タイマーが開始されたかどうか
 
@@ -884,12 +884,13 @@ function drawScore() {
             ctx.strokeText(timeText, canvas.width - 15, 45);
             ctx.fillText(timeText, canvas.width - 15, 45);
         } else {
+            // カウントダウン開始前の時間を表示
             ctx.fillStyle = '#FFFFFF';
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
-            const readyText = '準備中...';
-            ctx.strokeText(readyText, canvas.width - 15, 45);
-            ctx.fillText(readyText, canvas.width - 15, 45);
+            const timeText = `🕐 ${String(remainingTime).padStart(3, '0')}`;
+            ctx.strokeText(timeText, canvas.width - 15, 45);
+            ctx.fillText(timeText, canvas.width - 15, 45);
         }
         ctx.restore();
     }
