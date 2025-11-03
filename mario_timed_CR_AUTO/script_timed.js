@@ -559,6 +559,9 @@ function init() {
 
     // BGMを再生開始（ループ再生）
     startBGM();
+    
+    // コントローラー状態を更新
+    updateGamepadStatus();
 }
 
 // BGM再生開始関数
@@ -746,84 +749,203 @@ function drawGroundPattern(offset, groundY, groundHeight) {
 
 // --- メッセージ・スコア描画 ---
 function drawMessage(message, subMessage, finalScore) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    // 背景（半透明の暗い色）
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
+    
+    // 中央位置の計算（全体を中央に配置）
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // メインメッセージ（タイムアップ！）
+    ctx.save();
     ctx.textAlign = 'center';
-    ctx.font = '60px sans-serif';
-    ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 120);
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 72px "Fredoka One", cursive';
+    ctx.strokeStyle = '#FFD700'; // 金色の縁取り
+    ctx.lineWidth = 4;
+    ctx.fillStyle = '#FF6B6B'; // 赤系の色
+    const mainY = centerY - 130;
+    ctx.strokeText(message, centerX, mainY);
+    ctx.fillText(message, centerX, mainY);
+    ctx.restore();
     
     if (gameMode === 'timed' && gameState === 'gameOver') {
-        ctx.font = '30px sans-serif';
-        ctx.fillText('獲得スコア:', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.fillText(`${finalScore}`, canvas.width / 2, canvas.height / 2 - 20);
-        ctx.font = '24px sans-serif';
-        ctx.fillText(`ブロック衝突: ${obstacleCollisions}回`, canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText(`敵衝突: ${enemyCollisions}回`, canvas.width / 2, canvas.height / 2 + 50);
-        ctx.fillText(`獲得コイン: ${coinsCollected}個`, canvas.width / 2, canvas.height / 2 + 80);
-        ctx.font = '20px sans-serif';
-        ctx.fillText(subMessage, canvas.width / 2, canvas.height / 2 + 120);
+        // 獲得スコア（コインマークなし）
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 48px "Fredoka One", cursive';
+        ctx.fillStyle = '#FFD700'; // 金色
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        const scoreY = centerY - 40;
+        const scoreText = `獲得スコア: ${String(finalScore).padStart(4, '0')}`;
+        ctx.strokeText(scoreText, centerX, scoreY);
+        ctx.fillText(scoreText, centerX, scoreY);
+        ctx.restore();
+        
+        // 統計情報（可愛くポップなスタイル）
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 28px "Fredoka One", cursive';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        const statsY = centerY + 30;
+        const spacing = 45;
+        
+        // ロケット衝突数
+        const rocketText = `🚀 ロケット衝突: ${obstacleCollisions}回`;
+        ctx.strokeText(rocketText, centerX, statsY);
+        ctx.fillText(rocketText, centerX, statsY);
+        
+        // モンスター衝突数
+        const enemyText = `👾 モンスター衝突: ${enemyCollisions}回`;
+        ctx.strokeText(enemyText, centerX, statsY + spacing);
+        ctx.fillText(enemyText, centerX, statsY + spacing);
+        
+        // 獲得コイン
+        const coinText = `🪙 獲得コイン: ${coinsCollected}個`;
+        ctx.strokeText(coinText, centerX, statsY + spacing * 2);
+        ctx.fillText(coinText, centerX, statsY + spacing * 2);
+        ctx.restore();
+        
+        // リスタート説明
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 24px "Fredoka One", cursive';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        const restartY = centerY + 200;
+        ctx.strokeText(subMessage, centerX, restartY);
+        ctx.fillText(subMessage, centerX, restartY);
+        ctx.restore();
     } else if (finalScore !== undefined) {
-        ctx.font = '30px sans-serif';
-        ctx.fillText(`スコア: ${finalScore}`, canvas.width / 2, canvas.height / 2);
-        ctx.font = '24px sans-serif';
-        ctx.fillText(subMessage, canvas.width / 2, canvas.height / 2 + 50);
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 36px "Fredoka One", cursive';
+        ctx.fillStyle = '#FFD700';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        const scoreText = `スコア: ${finalScore}`;
+        ctx.strokeText(scoreText, centerX, centerY);
+        ctx.fillText(scoreText, centerX, centerY);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 24px "Fredoka One", cursive';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeText(subMessage, centerX, centerY + 50);
+        ctx.fillText(subMessage, centerX, centerY + 50);
+        ctx.restore();
     }
 }
 
 function drawScore() {
-    ctx.fillStyle = 'black';
-    ctx.font = '24px sans-serif';
+    // フォント設定（ポップで可愛いフォント）
+    const popFont = 'bold 32px "Fredoka One", cursive';
+    
+    // 左上: 獲得スコアの表示（コインアイコン付き）
+    ctx.save();
+    ctx.font = popFont;
     ctx.textAlign = 'left';
-    ctx.fillText(`スコア: ${score}`, 20, 40);
+    ctx.fillStyle = '#FFD700'; // 金色
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    const scoreText = `🪙 ${String(score).padStart(3, '0')}`;
+    ctx.strokeText(scoreText, 15, 45);
+    ctx.fillText(scoreText, 15, 45);
+    ctx.restore();
+    
+    // 右上: 残り時間の表示（時計アイコン付き）
     if (gameMode === 'timed') {
+        ctx.save();
+        ctx.font = popFont;
+        ctx.textAlign = 'right';
         if (timerStarted) {
             // 残り時間10秒以下は赤色に変更
             if (remainingTime <= 10) {
-                ctx.fillStyle = 'red';
+                ctx.fillStyle = '#FF0000'; // 赤色
             } else {
-                ctx.fillStyle = 'black';
+                ctx.fillStyle = '#FFFFFF'; // 白色
             }
-            ctx.fillText(`残り時間: ${remainingTime}秒`, 20, 70);
-            ctx.fillStyle = 'black'; // 色を戻す
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            const timeText = `🕐 ${String(remainingTime).padStart(3, '0')}`;
+            ctx.strokeText(timeText, canvas.width - 15, 45);
+            ctx.fillText(timeText, canvas.width - 15, 45);
         } else {
-            ctx.fillText(`準備中... ボタンを押して開始`, 20, 70);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            const readyText = '準備中...';
+            ctx.strokeText(readyText, canvas.width - 15, 45);
+            ctx.fillText(readyText, canvas.width - 15, 45);
         }
+        ctx.restore();
     }
     
-    // コントローラー接続状態の表示
-    if (gamepadConnected) {
-        ctx.fillStyle = 'green';
-        ctx.font = '16px sans-serif';
-        ctx.fillText('コントローラー接続中', 20, 100);
-    } else {
-        ctx.fillStyle = 'red';
-        ctx.font = '16px sans-serif';
-        ctx.fillText('コントローラー未接続', 20, 100);
-    }
-
-    // 現在のモード表示
-    ctx.fillStyle = isRightHanded ? 'red' : 'blue';
-    ctx.font = '18px sans-serif';
-    ctx.fillText(`モード: ${isRightHanded ? '右利き' : '左利き'}`, 20, 130);
+    // 真ん中上: モードの表示
+    ctx.save();
+    ctx.font = popFont;
+    ctx.textAlign = 'center';
+    const modeText = isRightHanded ? '右利きモード' : '左利きモード';
+    ctx.fillStyle = isRightHanded ? '#FF6B6B' : '#4ECDC4'; // 右利き: 赤系、左利き: 青緑系
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.strokeText(modeText, canvas.width / 2, 45);
+    ctx.fillText(modeText, canvas.width / 2, 45);
+    ctx.restore();
 
     // 切り替えカウントダウン表示（10秒前から）
     if (switchCountdown > 0 && switchCountdown <= 10) {
-        ctx.fillStyle = 'red';
-        ctx.font = 'bold 32px sans-serif';
+        ctx.save();
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 36px "Fredoka One", cursive';
         ctx.textAlign = 'center';
         const countdownText = `切り替えまで: ${switchCountdown}秒`;
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 4;
         ctx.strokeText(countdownText, canvas.width / 2, canvas.height - 50);
         ctx.fillText(countdownText, canvas.width / 2, canvas.height - 50);
-        ctx.textAlign = 'left';
+        ctx.restore();
     }
 }
 
 // コントローラー状態表示用の関数
 function showGamepadStatus(message, type) {
+    const statusElement = document.getElementById('gamepadStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.style.color = type === 'success' ? '#00AA00' : '#AA0000';
+    }
     console.log(message);
+    
+    // ゲーム中は常に状態を更新
+    updateGamepadStatus();
+}
+
+// コントローラー状態を更新する関数
+function updateGamepadStatus() {
+    const statusElement = document.getElementById('gamepadStatus');
+    if (statusElement) {
+        if (gamepadConnected) {
+            statusElement.textContent = '🎮 コントローラー接続中';
+            statusElement.style.color = '#00AA00';
+        } else {
+            statusElement.textContent = '❌ コントローラー未接続';
+            statusElement.style.color = '#AA0000';
+        }
+    }
 }
 
 // デバッグ用：コントローラー情報を表示
@@ -1200,11 +1322,12 @@ function animate() {
     enemies.forEach(e => e.draw(scrollOffset));
     player.draw(scrollOffset);
     drawScore();
+    updateGamepadStatus(); // コントローラー状態を更新
 
     if (gameState === 'gameOver') {
         // ゲーム終了時にBGMを停止
         stopBGM();
-        drawMessage('終了！', 'Enterキーまたはボタンでリスタート', score);
+        drawMessage('タイムアップ！', 'Enterキーまたはボタンでリスタート', score);
     }
 }
 
@@ -1309,6 +1432,18 @@ umekoImage.onload = function() {
     console.log('うめこの画像が読み込まれました');
 };
 
-init();
-animate();
+// フォント読み込みを待つ
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+        console.log('フォントが読み込まれました');
+        init();
+        animate();
+    });
+} else {
+    // フォントAPIがサポートされていない場合は即座に開始
+    setTimeout(() => {
+        init();
+        animate();
+    }, 100);
+}
 
