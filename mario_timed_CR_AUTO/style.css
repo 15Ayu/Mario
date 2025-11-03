@@ -71,4 +71,12 @@ canvas {
     padding-left: 20px;
 }
 
+.icon-canvas {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    border: none;
+    outline: none;
+}
+
 

@@ -796,15 +796,33 @@ function drawMessage(message, subMessage, finalScore) {
         const statsY = centerY + 30;
         const spacing = 45;
         
-        // ロケット衝突数
-        const rocketText = `🚀 ロケット衝突: ${obstacleCollisions}回`;
-        ctx.strokeText(rocketText, centerX, statsY);
-        ctx.fillText(rocketText, centerX, statsY);
+        // ロケット衝突数（実際のロケット画像を使用）
+        const rocketLabelY = statsY;
+        const rocketText = `ロケット衝突: ${obstacleCollisions}回`;
+        const rocketTextWidth = ctx.measureText(rocketText).width;
+        const rocketIconSize = 28;
+        // アイコンの中心を文字列の中央高さに合わせ、左に配置
+        const rocketIconCenterX = centerX - rocketTextWidth / 2 - rocketIconSize / 2 - 8;
+        const rocketIconCenterY = rocketLabelY; // 文字列の中央の高さ
+        const rocketIconX = rocketIconCenterX - rocketIconSize / 2; // 左上の座標に変換
+        const rocketIconY = rocketIconCenterY - rocketIconSize / 2; // 左上の座標に変換
+        drawRocketIcon(rocketIconX, rocketIconY, rocketIconSize); // ロケットを描画（コインと同じくらいのサイズ）
+        ctx.strokeText(rocketText, centerX, rocketLabelY);
+        ctx.fillText(rocketText, centerX, rocketLabelY);
         
-        // モンスター衝突数
-        const enemyText = `👾 モンスター衝突: ${enemyCollisions}回`;
-        ctx.strokeText(enemyText, centerX, statsY + spacing);
-        ctx.fillText(enemyText, centerX, statsY + spacing);
+        // モンスター衝突数（実際のモンスター画像を使用）
+        const enemyLabelY = statsY + spacing;
+        const enemyText = `モンスター衝突: ${enemyCollisions}回`;
+        const enemyTextWidth = ctx.measureText(enemyText).width;
+        const enemyIconSize = 28;
+        // アイコンの中心を文字列の中央高さに合わせ、左に配置
+        const enemyIconCenterX = centerX - enemyTextWidth / 2 - enemyIconSize / 2 - 8;
+        const enemyIconCenterY = enemyLabelY - 3; // 文字列の中央の高さより少し上
+        const enemyIconX = enemyIconCenterX - enemyIconSize / 2; // 左上の座標に変換
+        const enemyIconY = enemyIconCenterY - enemyIconSize / 2; // 左上の座標に変換
+        drawEnemyIcon(enemyIconX, enemyIconY, enemyIconSize); // モンスターを描画（コインと同じくらいのサイズ）
+        ctx.strokeText(enemyText, centerX, enemyLabelY);
+        ctx.fillText(enemyText, centerX, enemyLabelY);
         
         // 獲得コイン（実際のコイン画像を使用）
         const coinLabelY = statsY + spacing * 2;
@@ -854,6 +872,88 @@ function drawMessage(message, subMessage, finalScore) {
         ctx.fillText(subMessage, centerX, centerY + 50);
         ctx.restore();
     }
+}
+
+// ロケット（Obstacle）を描画するヘルパー関数（小さなサイズ）
+function drawRocketIcon(x, y, size) {
+    const w = size || 20;
+    const h = size || 20;
+    
+    ctx.save();
+    
+    // ロケット本体（黒、横向き）
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.moveTo(x, y + h/2); // 左先端（進行方向）
+    ctx.lineTo(x + w*0.6, y + h*0.25); // 上側
+    ctx.lineTo(x + w*0.8, y + h*0.25); // 上側後
+    ctx.lineTo(x + w, y + h*0.15); // 右尾翼（上）
+    ctx.lineTo(x + w*0.9, y + h/2); // 中央後
+    ctx.lineTo(x + w, y + h*0.85); // 右尾翼（下）
+    ctx.lineTo(x + w*0.8, y + h*0.75); // 下側後
+    ctx.lineTo(x + w*0.6, y + h*0.75); // 下側
+    ctx.closePath();
+    ctx.fill();
+    
+    // 中央部分（少し明るいグレー）
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x + w*0.2, y + h*0.3, w*0.4, h*0.4);
+    
+    // 先端部分（ダークグレー）
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath();
+    ctx.moveTo(x, y + h/2);
+    ctx.lineTo(x + w*0.2, y + h*0.3);
+    ctx.lineTo(x + w*0.2, y + h*0.7);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 尾翼のライン（シルバー）
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.6, y + h*0.25);
+    ctx.lineTo(x + w, y + h*0.15);
+    ctx.moveTo(x + w*0.6, y + h*0.75);
+    ctx.lineTo(x + w, y + h*0.85);
+    ctx.stroke();
+    
+    ctx.restore();
+}
+
+// モンスター（Enemy）を描画するヘルパー関数（小さなサイズ）
+function drawEnemyIcon(x, y, size) {
+    const w = size || 20;
+    const h = size || 20;
+    
+    ctx.save();
+    
+    // 体（紫）
+    ctx.fillStyle = '#8B00FF';
+    ctx.fillRect(x + w*0.1, y + h*0.2, w*0.8, h*0.6);
+    
+    // 目（白）
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(x + w*0.25, y + h*0.35, w*0.15, 0, Math.PI * 2);
+    ctx.arc(x + w*0.75, y + h*0.35, w*0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 瞳（黒）
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(x + w*0.25, y + h*0.35, w*0.08, 0, Math.PI * 2);
+    ctx.arc(x + w*0.75, y + h*0.35, w*0.08, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 脚（4本）
+    ctx.fillStyle = '#8B00FF';
+    ctx.fillRect(x + w*0.1, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.35, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.5, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.75, y + h*0.8, w*0.15, h*0.2);
+    
+    ctx.restore();
 }
 
 // コインを描画するヘルパー関数（スコア表示用の小さなサイズ）
@@ -1518,16 +1618,186 @@ umekoImage.onload = function() {
     console.log('うめこの画像が読み込まれました');
 };
 
+// 説明部分のアイコンを描画する関数
+function drawExplanationIcons() {
+    // コインアイコン
+    const coinCanvas = document.getElementById('coinIcon');
+    if (coinCanvas) {
+        const coinCtx = coinCanvas.getContext('2d');
+        drawCoinIconToCanvas(coinCtx, 10, 10, 8);
+    }
+    
+    // ロケットアイコン（canvasの中央に配置）
+    const rocketCanvas = document.getElementById('rocketIcon');
+    if (rocketCanvas) {
+        const rocketCtx = rocketCanvas.getContext('2d');
+        const rocketSize = 18; // サイズをさらに大きく
+        const rocketX = 10; // canvasの中央X
+        const rocketY = 10; // canvasの中央Y
+        drawRocketIconToCanvas(rocketCtx, rocketX - rocketSize/2, rocketY - rocketSize/2, rocketSize);
+    }
+    
+    // モンスターアイコン（canvasの中央に配置）
+    const enemyCanvas = document.getElementById('enemyIcon');
+    if (enemyCanvas) {
+        const enemyCtx = enemyCanvas.getContext('2d');
+        const enemySize = 18; // サイズをさらに大きく
+        const enemyX = 10; // canvasの中央X
+        const enemyY = 10; // canvasの中央Y
+        drawEnemyIconToCanvas(enemyCtx, enemyX - enemySize/2, enemyY - enemySize/2, enemySize);
+    }
+}
+
+// コインを任意のcanvasに描画する関数
+function drawCoinIconToCanvas(ctx, x, y, radius) {
+    const r = radius || 8;
+    
+    ctx.save();
+    
+    // 外側の縁（盛り上がったリム）- 明るい金色
+    const rimGradient = ctx.createRadialGradient(x, y, r * 0.7, x, y, r);
+    rimGradient.addColorStop(0, '#FFD700');
+    rimGradient.addColorStop(1, '#FFA500');
+    ctx.fillStyle = rimGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 内側のコイン本体
+    const bodyGradient = ctx.createRadialGradient(x - r/4, y - r/4, 0, x, y, r * 0.85);
+    bodyGradient.addColorStop(0, '#FFD700');
+    bodyGradient.addColorStop(0.6, '#FFA500');
+    bodyGradient.addColorStop(1, '#DAA520');
+    ctx.fillStyle = bodyGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 中央の縦長長方形
+    const rectWidth = r * 0.3;
+    const rectHeight = r * 0.8;
+    const rectX = x - rectWidth / 2;
+    const rectY = y - rectHeight / 2;
+    
+    // 長方形の影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(rectX + 1, rectY + rectHeight * 0.6, rectWidth, rectHeight * 0.4);
+    
+    // 長方形本体
+    const rectGradient = ctx.createLinearGradient(rectX, rectY, rectX, rectY + rectHeight);
+    rectGradient.addColorStop(0, '#FFF8DC');
+    rectGradient.addColorStop(0.5, '#FFD700');
+    rectGradient.addColorStop(1, '#FFA500');
+    ctx.fillStyle = rectGradient;
+    const cornerRadius = r * 0.1;
+    ctx.beginPath();
+    ctx.moveTo(rectX + cornerRadius, rectY);
+    ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
+    ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius);
+    ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
+    ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight);
+    ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
+    ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius);
+    ctx.lineTo(rectX, rectY + cornerRadius);
+    ctx.quadraticCurveTo(rectX, rectY, rectX + cornerRadius, rectY);
+    ctx.closePath();
+    ctx.fill();
+    
+    // ハイライト
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = 0.6;
+    ctx.fillRect(rectX, rectY, rectWidth, rectHeight * 0.3);
+    ctx.globalAlpha = 1.0;
+    
+    ctx.restore();
+}
+
+// ロケットを任意のcanvasに描画する関数
+function drawRocketIconToCanvas(ctx, x, y, size) {
+    const w = size || 14;
+    const h = size || 14;
+    
+    ctx.save();
+    
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.moveTo(x, y + h/2);
+    ctx.lineTo(x + w*0.6, y + h*0.25);
+    ctx.lineTo(x + w*0.8, y + h*0.25);
+    ctx.lineTo(x + w, y + h*0.15);
+    ctx.lineTo(x + w*0.9, y + h/2);
+    ctx.lineTo(x + w, y + h*0.85);
+    ctx.lineTo(x + w*0.8, y + h*0.75);
+    ctx.lineTo(x + w*0.6, y + h*0.75);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x + w*0.2, y + h*0.3, w*0.4, h*0.4);
+    
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath();
+    ctx.moveTo(x, y + h/2);
+    ctx.lineTo(x + w*0.2, y + h*0.3);
+    ctx.lineTo(x + w*0.2, y + h*0.7);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.6, y + h*0.25);
+    ctx.lineTo(x + w, y + h*0.15);
+    ctx.moveTo(x + w*0.6, y + h*0.75);
+    ctx.lineTo(x + w, y + h*0.85);
+    ctx.stroke();
+    
+    ctx.restore();
+}
+
+// モンスターを任意のcanvasに描画する関数
+function drawEnemyIconToCanvas(ctx, x, y, size) {
+    const w = size || 14;
+    const h = size || 14;
+    
+    ctx.save();
+    
+    ctx.fillStyle = '#8B00FF';
+    ctx.fillRect(x + w*0.1, y + h*0.2, w*0.8, h*0.6);
+    
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(x + w*0.25, y + h*0.35, w*0.15, 0, Math.PI * 2);
+    ctx.arc(x + w*0.75, y + h*0.35, w*0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(x + w*0.25, y + h*0.35, w*0.08, 0, Math.PI * 2);
+    ctx.arc(x + w*0.75, y + h*0.35, w*0.08, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#8B00FF';
+    ctx.fillRect(x + w*0.1, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.35, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.5, y + h*0.8, w*0.15, h*0.2);
+    ctx.fillRect(x + w*0.75, y + h*0.8, w*0.15, h*0.2);
+    
+    ctx.restore();
+}
+
 // フォント読み込みを待つ
 if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => {
         console.log('フォントが読み込まれました');
+        drawExplanationIcons(); // 説明部分のアイコンを描画
         init();
         animate();
     });
 } else {
     // フォントAPIがサポートされていない場合は即座に開始
     setTimeout(() => {
+        drawExplanationIcons(); // 説明部分のアイコンを描画
         init();
         animate();
     }, 100);
