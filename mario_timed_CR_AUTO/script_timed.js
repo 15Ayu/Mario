@@ -12,6 +12,7 @@ const retroSound = document.getElementById('retroSound');
 const countdownSound = document.getElementById('countdownSound');
 const gameOverSound = document.getElementById('gameOverSound');
 const jumpSound = document.getElementById('jumpSound');
+const modeSwitchSound = document.getElementById('modeSwitchSound');
 
 // 効果音ファイルの読み込み確認
 if (coinSound) {
@@ -435,6 +436,49 @@ class Cloud {
     }
 }
 
+class Star {
+    constructor({ x, y, size }) { this.position = { x, y }; this.size = size; }
+    draw(offset) {
+        const x = this.position.x - offset * 0.5;
+        const y = this.position.y;
+        const s = this.size;
+        
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 1;
+        
+        // 星を描画（5角形）
+        ctx.beginPath();
+        const spikes = 5;
+        const outerRadius = s;
+        const innerRadius = s * 0.4;
+        let rotation = Math.PI / 2 * 3;
+        const step = Math.PI / spikes;
+        
+        for (let i = 0; i < spikes; i++) {
+            // 外側の点
+            ctx.lineTo(
+                x + Math.cos(rotation) * outerRadius,
+                y + Math.sin(rotation) * outerRadius
+            );
+            rotation += step;
+            
+            // 内側の点
+            ctx.lineTo(
+                x + Math.cos(rotation) * innerRadius,
+                y + Math.sin(rotation) * innerRadius
+            );
+            rotation += step;
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
 class Mountain {
     constructor({ x, y, width, height, colorIndex }) {
         this.position = { x, y };
@@ -483,7 +527,7 @@ class Mountain {
 }
 
 // --- 変数定義 ---
-let player, platforms, coins, enemies, obstacles, clouds, mountains;
+let player, platforms, coins, enemies, obstacles, clouds, stars, mountains;
 let keys = { right: { pressed: false }, left: { pressed: false } };
 let umekoImage = null; // うめこの画像
 
@@ -509,11 +553,14 @@ function init() {
     player.position.y = 400 - player.height;
     const groundY = 400;
     platforms = []; // 最初の足場は不要（邪魔なので削除）
-    coins = []; enemies = []; obstacles = []; clouds = []; mountains = [];
+    coins = []; enemies = []; obstacles = []; clouds = []; stars = []; mountains = [];
     lastPlatformX = 0; // 最初の足場がないので0から開始
     lastObstacleX = 700;
     for (let i = 0; i < 70; i++) { // 70個の雲を生成（さらに増加）
         clouds.push(new Cloud({ x: Math.random() * 50000, y: Math.random() * 150, size: Math.random() * 20 + 10 }));
+    }
+    for (let i = 0; i < 70; i++) { // 70個の星を生成（左利きモード用）
+        stars.push(new Star({ x: Math.random() * 50000, y: Math.random() * 150, size: Math.random() * 5 + 5 }));
     }
     
     // 山をランダムに生成（初期生成）
@@ -681,11 +728,20 @@ function startTimer() {
 
 // --- 背景描画 ---
 function drawBackground(offset) {
-    // 空（グラデーション）
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    skyGradient.addColorStop(0, '#87CEEB'); // 空色
-    skyGradient.addColorStop(1, '#E0F6FF'); // 薄い空色
-    ctx.fillStyle = skyGradient;
+    // 空（右利きモード：青空、左利きモード：夜空）
+    if (isRightHanded) {
+        // 右利きモード：青空
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        skyGradient.addColorStop(0, '#87CEEB'); // 空色
+        skyGradient.addColorStop(1, '#E0F6FF'); // 薄い空色
+        ctx.fillStyle = skyGradient;
+    } else {
+        // 左利きモード：曇った夜空
+        const nightGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        nightGradient.addColorStop(0, '#3A4A6A'); // 曇った青（濃いめ）
+        nightGradient.addColorStop(1, '#2A2A4A'); // より濃い青紫
+        ctx.fillStyle = nightGradient;
+    }
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 地面（2段分の柄を水平表示）
@@ -1263,6 +1319,23 @@ function animate() {
         if (now >= nextSwitchTime) {
             isRightHanded = !isRightHanded;
             console.log(`モード切り替え: ${isRightHanded ? '右利き' : '左利き'}モード`);
+            // モード切り替え音を再生（音量を大きく）
+            if (modeSwitchSound) {
+                try {
+                    modeSwitchSound.volume = 1.0; // 音量を最大に
+                    modeSwitchSound.currentTime = 0;
+                    const playPromise = modeSwitchSound.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('モード切り替え音が再生されました');
+                        }).catch(error => {
+                            console.log('モード切り替え音の再生に失敗しました:', error);
+                        });
+                    }
+                } catch (error) {
+                    console.error('モード切り替え音の再生エラー:', error);
+                }
+            }
             scheduleNextSwitch(); // 次の切り替えをスケジュール
         }
     }
@@ -1505,6 +1578,7 @@ function animate() {
         generateObjects();
         platforms = platforms.filter(p => p.position.x + p.width > scrollOffset);
         clouds = clouds.filter(c => c.position.x - scrollOffset * 0.5 + c.size * 2 > 0); // 画面外に出た雲を削除
+        stars = stars.filter(s => s.position.x - scrollOffset * 0.5 + s.size * 2 > 0); // 画面外に出た星を削除
         mountains = mountains.filter(m => m.position.x - scrollOffset * 0.3 + m.width > 0); // 画面外に出た山を削除
         coins = coins.filter(c => c.position.x + c.radius > scrollOffset);
         enemies = enemies.filter(e => e.position.x + e.width > scrollOffset);
@@ -1524,14 +1598,22 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground(scrollOffset); // 背景を描画
     
-    // 雲を描画（背景レイヤー）
-    clouds.forEach(c => {
-        if (c.position.x - scrollOffset * 0.5 + c.size * 2 > 0 && c.position.x - scrollOffset * 0.5 - c.size * 2 < canvas.width) {
-            c.draw(scrollOffset);
-        }
-    });
+    // 右利きモード：雲を描画、左利きモード：星を描画（背景レイヤー）
+    if (isRightHanded) {
+        clouds.forEach(c => {
+            if (c.position.x - scrollOffset * 0.5 + c.size * 2 > 0 && c.position.x - scrollOffset * 0.5 - c.size * 2 < canvas.width) {
+                c.draw(scrollOffset);
+            }
+        });
+    } else {
+        stars.forEach(s => {
+            if (s.position.x - scrollOffset * 0.5 + s.size * 2 > 0 && s.position.x - scrollOffset * 0.5 - s.size * 2 < canvas.width) {
+                s.draw(scrollOffset);
+            }
+        });
+    }
     
-    // 山を描画（雲の後、地面の前の背景レイヤー）
+    // 山を描画（雲/星の後、地面の前の背景レイヤー）
     mountains.forEach(m => {
         m.draw(scrollOffset);
     });
