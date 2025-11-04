@@ -144,9 +144,10 @@ class Player {
         
         ctx.save();
         
-        // うめこの画像が読み込まれている場合は、画像を描画
-        if (umekoImage && umekoImage.complete) {
-            ctx.drawImage(umekoImage, x, y, w, h);
+        // モードに応じてキャラクター画像を描画
+        const currentImage = isRightHanded ? pramImage : plamImage;
+        if (currentImage && currentImage.complete) {
+            ctx.drawImage(currentImage, x, y, w, h);
         } else {
             // 画像が読み込まれていない場合は、ピクセルアートで描画（フォールバック）
             
@@ -529,7 +530,8 @@ class Mountain {
 // --- 変数定義 ---
 let player, platforms, coins, enemies, obstacles, clouds, stars, mountains;
 let keys = { right: { pressed: false }, left: { pressed: false } };
-let umekoImage = null; // うめこの画像
+let pramImage = null; // 右利きモード用の画像（Pram.png）
+let plamImage = null; // 左利きモード用の画像（Plam.png）
 
 // 左右切替のスケジュールを設定する関数
 function scheduleNextSwitch() {
@@ -1727,11 +1729,17 @@ document.addEventListener('click', () => {
     }
 });
 
-// うめこの画像を読み込む
-umekoImage = new Image();
-umekoImage.src = '../Umeko.png';
-umekoImage.onload = function() {
-    console.log('うめこの画像が読み込まれました');
+// キャラクター画像を読み込む
+pramImage = new Image();
+pramImage.src = '../Image/Pram.png';
+pramImage.onload = function() {
+    console.log('Pramの画像が読み込まれました');
+};
+
+plamImage = new Image();
+plamImage.src = '../Image/Plam.png';
+plamImage.onload = function() {
+    console.log('Plamの画像が読み込まれました');
 };
 
 // 説明部分のアイコンを描画する関数
