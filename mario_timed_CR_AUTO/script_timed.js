@@ -356,7 +356,7 @@ class Enemy {
 }
 
 class Obstacle {
-    constructor({ x, y }) { this.position = { x, y }; this.velocity = { x: -3, y: 0 }; this.width = 50; this.height = 50; this.collided = false; }
+    constructor({ x, y }) { this.position = { x, y }; this.velocity = { x: -3, y: 0 }; this.width = 50; this.height = 50; this.collided = false; this.isFalling = false; this.fallVelocity = 0; }
     draw(offset) { 
         const x = this.position.x - offset;
         const y = this.position.y;
@@ -405,7 +405,16 @@ class Obstacle {
         
         ctx.restore();
     }
-    update() { this.position.x += this.velocity.x; }
+    update() { 
+        if (this.isFalling) {
+            // 落下中の場合は重力を適用して下に落ちる
+            this.fallVelocity += GRAVITY;
+            this.position.y += this.fallVelocity;
+        } else {
+            // 通常時は水平移動
+            this.position.x += this.velocity.x;
+        }
+    }
 }
 
 class Cloud {
@@ -1425,16 +1434,32 @@ function animate() {
         });
 
         // その他の衝突判定
-        obstacles.forEach(o => { 
+        obstacles.forEach((o, i) => { 
+            // 落下中のロケットは衝突判定をスキップ
+            if (o.isFalling) return;
+            
             const isColliding = player.position.x < o.position.x + o.width && player.position.x + player.width > o.position.x && player.position.y < o.position.y + o.height && player.position.y + player.height > o.position.y;
-            if (isColliding && !o.collided) { 
-                score -= 100; 
-                if (score < 0) score = 0; 
-                obstacleCollisions++;
-                o.collided = true;
-                // ロケット接触時の効果音
-                playSoundEffect(explosionSound, '爆発');
-            } else if (!isColliding) {
+            if (isColliding) { 
+                // 上から踏みつけた場合（ロケットを踏みつけた）
+                if (player.velocity.y > 0 && player.position.y + player.height - player.velocity.y <= o.position.y && !o.collided) {
+                    // ロケットを落下状態にする（削除しない）
+                    o.isFalling = true;
+                    o.fallVelocity = 2; // 初期落下速度
+                    o.collided = true; // 衝突済みフラグを立てる
+                    score += 100;
+                    player.velocity.y = -JUMP_POWER / 2;
+                    // ロケットを踏みつけた時の効果音
+                    playSoundEffect(retroSound, 'レトロアクション');
+                } else if (!o.collided) {
+                    // 横や下から衝突した場合
+                    score -= 100; 
+                    if (score < 0) score = 0; 
+                    obstacleCollisions++;
+                    o.collided = true;
+                    // ロケット接触時の効果音
+                    playSoundEffect(explosionSound, '爆発');
+                }
+            } else {
                 o.collided = false;
             }
         });
@@ -1443,12 +1468,12 @@ function animate() {
             if (isColliding) { 
                 if (player.velocity.y > 0 && player.position.y + player.height - player.velocity.y <= e.position.y && !e.collided) { 
                     enemies.splice(i, 1); 
-                    score += 200; 
+                    score += 100; 
                     player.velocity.y = -JUMP_POWER / 2;
                     // 敵を踏み潰した時の効果音
                     playSoundEffect(retroSound, 'レトロアクション'); 
                 } else if (!e.collided) { 
-                    score -= 200; 
+                    score -= 100; 
                     if (score < 0) score = 0; 
                     enemyCollisions++;
                     e.collided = true;
@@ -1483,7 +1508,16 @@ function animate() {
         mountains = mountains.filter(m => m.position.x - scrollOffset * 0.3 + m.width > 0); // 画面外に出た山を削除
         coins = coins.filter(c => c.position.x + c.radius > scrollOffset);
         enemies = enemies.filter(e => e.position.x + e.width > scrollOffset);
-        obstacles = obstacles.filter(o => o.position.x + o.width > scrollOffset);
+        // 落下中のロケットは画面下に落ちた時に削除、通常のロケットは画面左に出た時に削除
+        obstacles = obstacles.filter(o => {
+            if (o.isFalling) {
+                // 落下中のロケットは地面より下に落ちた時に削除
+                return o.position.y < canvas.height + 100;
+            } else {
+                // 通常のロケットは画面左に出た時に削除
+                return o.position.x + o.width > scrollOffset;
+            }
+        });
     }
 
     // --- 描画処理 ---
@@ -1645,6 +1679,26 @@ function drawExplanationIcons() {
         const enemyX = 10; // canvasの中央X
         const enemyY = 10; // canvasの中央Y
         drawEnemyIconToCanvas(enemyCtx, enemyX - enemySize/2, enemyY - enemySize/2, enemySize);
+    }
+    
+    // ロケットアイコン2（ロケットに衝突の項目用）
+    const rocketCanvas2 = document.getElementById('rocketIcon2');
+    if (rocketCanvas2) {
+        const rocketCtx2 = rocketCanvas2.getContext('2d');
+        const rocketSize2 = 18;
+        const rocketX2 = 10;
+        const rocketY2 = 10;
+        drawRocketIconToCanvas(rocketCtx2, rocketX2 - rocketSize2/2, rocketY2 - rocketSize2/2, rocketSize2);
+    }
+    
+    // モンスターアイコン2（敵に衝突の項目用）
+    const enemyCanvas2 = document.getElementById('enemyIcon2');
+    if (enemyCanvas2) {
+        const enemyCtx2 = enemyCanvas2.getContext('2d');
+        const enemySize2 = 18;
+        const enemyX2 = 10;
+        const enemyY2 = 10;
+        drawEnemyIconToCanvas(enemyCtx2, enemyX2 - enemySize2/2, enemyY2 - enemySize2/2, enemySize2);
     }
 }
 
