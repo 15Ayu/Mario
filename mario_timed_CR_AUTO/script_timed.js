@@ -91,11 +91,16 @@ const COIN_SCORE = 100;
 const STAGE_LENGTH = 12000; // ステージの全長
 
 // ゲームの状態
-let gameState = 'playing';
+let gameState = 'startScreen'; // 初期状態をスタート画面に変更
 let score = 0;
 let scrollOffset = 0;
 let lastPlatformX = 0;
 let lastObstacleX = 0;
+
+// カウントダウン関連の変数
+let countdownNumber = 3; // カウントダウンの数字（3, 2, 1）
+let countdownInterval = null; // カウントダウン用のインターバル
+let countdownStarted = false; // カウントダウンが開始されたかどうか
 
 // Gamepad関連の変数
 let gamepad = null;
@@ -552,13 +557,20 @@ function scheduleNextSwitch() {
 
 // --- 初期化 ---
 function init() {
-    gameState = 'playing';
+    gameState = 'startScreen'; // スタート画面から開始
     score = 0;
     scrollOffset = 0;
     keys.right.pressed = false;
     keys.left.pressed = false;
     // BGMフラグをリセット（リスタート時にも再生できるように）
     bgmStarted = false;
+    // カウントダウンをリセット
+    countdownNumber = 3;
+    countdownStarted = false;
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
     player = new Player();
     // プレイヤーを地面の上に配置（サイズが大きくなったので調整）
     player.position.y = 400 - player.height;
@@ -827,36 +839,42 @@ function drawGroundPattern(offset, groundY, groundHeight) {
 
 // スタート画面を描画する関数（ゲーム画面の上にオーバーレイとして表示）
 function drawStartScreen() {
-    // 薄暗い背景オーバーレイ（終了画面と同じ）
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    // 背景を描画（ゲーム画面を表示）
+    drawBackground(scrollOffset);
+    
+    // 薄暗い背景オーバーレイ（透明度を調整）
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
     // タイトルを描画（目指せ両利き！PL/Ramちゃんゲーム）
+    const titleY = 90; // 上に配置
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 56px "Fredoka One", cursive';
+    ctx.font = 'bold 40px "Fredoka One", cursive';
     
-    const titleY = centerY - 180;
-    let currentX = centerX;
+    // タイトル全体の幅を計算して中央揃え
+    const fullTitle = '目指せ両利き！PL/Ramちゃんゲーム';
+    const fullTitleWidth = ctx.measureText(fullTitle).width;
+    let currentX = centerX - fullTitleWidth / 2;
     
     // 目指せ両利き！Pを描画
     const part1 = '目指せ両利き！P';
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     const part1Width = ctx.measureText(part1).width;
-    ctx.strokeText(part1, currentX - part1Width / 2, titleY);
-    ctx.fillText(part1, currentX - part1Width / 2, titleY);
-    currentX += part1Width / 2;
+    ctx.strokeText(part1, currentX, titleY);
+    ctx.fillText(part1, currentX, titleY);
+    currentX += part1Width;
     
     // Lを青色で描画
     ctx.fillStyle = '#0066FF'; // 青色
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     const lWidth = ctx.measureText('L').width;
     ctx.strokeText('L', currentX, titleY);
     ctx.fillText('L', currentX, titleY);
@@ -865,7 +883,7 @@ function drawStartScreen() {
     // /を描画
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     const slashWidth = ctx.measureText('/').width;
     ctx.strokeText('/', currentX, titleY);
     ctx.fillText('/', currentX, titleY);
@@ -874,7 +892,7 @@ function drawStartScreen() {
     // Rを赤色で描画
     ctx.fillStyle = '#FF0000'; // 赤色
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     const rWidth = ctx.measureText('R').width;
     ctx.strokeText('R', currentX, titleY);
     ctx.fillText('R', currentX, titleY);
@@ -883,41 +901,243 @@ function drawStartScreen() {
     // amちゃんゲームを描画
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.strokeText('amちゃんゲーム', currentX, titleY);
     ctx.fillText('amちゃんゲーム', currentX, titleY);
     
     ctx.restore();
     
-    // キャラクター画像を描画（左右にいい感じに配置）
-    // プレイヤーのサイズ比率（40:60 = 2:3）を使用
-    const imageWidth = 100;
-    const imageHeight = 150; // 40:60の比率を維持
-    const imageY = centerY - 30;
+    // キャラクター画像を描画（中央寄りに配置）
+    const imageWidth = 120;
+    const imageHeight = 180; // 2:3の比率を維持
+    const imageY = 190; // タイトルの下に配置
     
-    // Plamちゃん（左側）
+    // Plamちゃん（左側）の光るエフェクト
     if (plamImage && plamImage.complete) {
-        ctx.drawImage(plamImage, centerX - 250, imageY, imageWidth, imageHeight);
+        const plamX = centerX - 180;
+        // 光るエフェクト（グラデーション）
+        const glowGradient = ctx.createRadialGradient(
+            plamX + imageWidth / 2, imageY + imageHeight / 2, 0,
+            plamX + imageWidth / 2, imageY + imageHeight / 2, imageWidth
+        );
+        glowGradient.addColorStop(0, 'rgba(100, 149, 237, 0.3)');
+        glowGradient.addColorStop(1, 'rgba(100, 149, 237, 0)');
+        ctx.fillStyle = glowGradient;
+        ctx.fillRect(plamX - 10, imageY - 10, imageWidth + 20, imageHeight + 20);
+        
+        ctx.drawImage(plamImage, plamX, imageY, imageWidth, imageHeight);
     }
     
-    // Pramちゃん（右側）
+    // Pramちゃん（右側）の光るエフェクト
     if (pramImage && pramImage.complete) {
-        ctx.drawImage(pramImage, centerX + 150, imageY, imageWidth, imageHeight);
+        const pramX = centerX + 80;
+        // 光るエフェクト（グラデーション）
+        const glowGradient = ctx.createRadialGradient(
+            pramX + imageWidth / 2, imageY + imageHeight / 2, 0,
+            pramX + imageWidth / 2, imageY + imageHeight / 2, imageWidth
+        );
+        glowGradient.addColorStop(0, 'rgba(255, 99, 71, 0.3)');
+        glowGradient.addColorStop(1, 'rgba(255, 99, 71, 0)');
+        ctx.fillStyle = glowGradient;
+        ctx.fillRect(pramX - 10, imageY - 10, imageWidth + 20, imageHeight + 20);
+        
+        ctx.drawImage(pramImage, pramX, imageY, imageWidth, imageHeight);
     }
     
-    // スタートメッセージ
+    // スタートメッセージ（点滅アニメーション付き）
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 28px "Fredoka One", cursive';
+    ctx.font = 'bold 24px "Fredoka One", cursive';
+    
+    // 点滅効果（時間に基づいて透明度を変更）
+    const blinkTime = Date.now() % 2000; // 2秒周期
+    const alpha = blinkTime < 1000 ? 1.0 : 0.3 + (blinkTime - 1000) / 1000 * 0.7;
+    
+    // グラデーション効果
+    const messageGradient = ctx.createLinearGradient(centerX - 200, 410, centerX + 200, 410);
+    messageGradient.addColorStop(0, `rgba(255, 215, 0, ${alpha})`);
+    messageGradient.addColorStop(0.5, `rgba(255, 255, 255, ${alpha})`);
+    messageGradient.addColorStop(1, `rgba(255, 215, 0, ${alpha})`);
+    ctx.fillStyle = messageGradient;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    
+    // メッセージを2行に分割
+    const messageLine1 = 'コントローラーのいずれかのボタン、';
+    const messageLine2 = 'またはEnterキーでスタート！';
+    const line1Y = 400;
+    const line2Y = 430;
+    
+    ctx.strokeText(messageLine1, centerX, line1Y);
+    ctx.fillText(messageLine1, centerX, line1Y);
+    ctx.strokeText(messageLine2, centerX, line2Y);
+    ctx.fillText(messageLine2, centerX, line2Y);
+    
+    ctx.restore();
+}
+
+// 星を描画するヘルパー関数
+function drawStar(x, y, size) {
+    ctx.save();
+    ctx.beginPath();
+    const spikes = 5;
+    const outerRadius = size;
+    const innerRadius = size * 0.4;
+    let rotation = Math.PI / 2 * 3;
+    const step = Math.PI / spikes;
+    
+    for (let i = 0; i < spikes; i++) {
+        ctx.lineTo(
+            x + Math.cos(rotation) * outerRadius,
+            y + Math.sin(rotation) * outerRadius
+        );
+        rotation += step;
+        ctx.lineTo(
+            x + Math.cos(rotation) * innerRadius,
+            y + Math.sin(rotation) * innerRadius
+        );
+        rotation += step;
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
+// ハートを描画するヘルパー関数
+function drawHeart(x, y, size) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, y + size * 0.3);
+    // 左側の曲線
+    ctx.bezierCurveTo(x, y, x - size * 0.5, y, x - size * 0.5, y + size * 0.3);
+    ctx.bezierCurveTo(x - size * 0.5, y + size * 0.7, x, y + size * 1.2, x, y + size * 1.5);
+    // 右側の曲線
+    ctx.bezierCurveTo(x, y + size * 1.2, x + size * 0.5, y + size * 0.7, x + size * 0.5, y + size * 0.3);
+    ctx.bezierCurveTo(x + size * 0.5, y, x, y, x, y + size * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
+// 手を描画するヘルパー関数
+function drawHand(x, y, size, isLeft) {
+    ctx.save();
+    
+    // 手の色（肌色）
+    ctx.fillStyle = '#FFDBAC';
+    ctx.strokeStyle = '#D4A574';
+    ctx.lineWidth = 2;
+    
+    const handWidth = size * 0.5;
+    const handHeight = size * 0.8;
+    const fingerWidth = size * 0.12;
+    const fingerHeight = size * 0.35;
+    const fingerSpacing = size * 0.1;
+    
+    // 手のひら（楕円）
+    ctx.beginPath();
+    ctx.ellipse(x, y + handHeight * 0.3, handWidth, handHeight, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // 親指（手のひらの横）
+    const thumbX = isLeft ? x - handWidth * 0.6 : x + handWidth * 0.6;
+    const thumbY = y + handHeight * 0.2;
+    ctx.beginPath();
+    ctx.ellipse(thumbX, thumbY, fingerWidth * 1.1, fingerHeight * 0.7, isLeft ? -Math.PI / 6 : Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // 4本の指（上に伸びる）
+    const fingerBaseX = x;
+    const fingerBaseY = y - handHeight * 0.2;
+    
+    for (let i = 0; i < 4; i++) {
+        const offsetX = (i - 1.5) * fingerSpacing;
+        const fingerX = fingerBaseX + offsetX;
+        const fingerY = fingerBaseY;
+        ctx.beginPath();
+        ctx.ellipse(fingerX, fingerY, fingerWidth, fingerHeight, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+}
+
+// カウントダウン画面を描画する関数
+function drawCountdown() {
+    // 背景を描画（ゲーム画面を表示）
+    drawBackground(scrollOffset);
+    
+    // 薄暗い背景オーバーレイ
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // カウントダウンの数字を大きく表示
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 120px "Fredoka One", cursive';
     ctx.fillStyle = '#FFD700';
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 4;
-    const startMessageY = centerY + 140;
-    const startMessage = 'コントローラーのいずれかのボタン、またはEnterキーでスタート！';
-    ctx.strokeText(startMessage, centerX, startMessageY);
-    ctx.fillText(startMessage, centerX, startMessageY);
+    ctx.lineWidth = 8;
+    const countdownText = countdownNumber.toString();
+    ctx.strokeText(countdownText, centerX, centerY);
+    ctx.fillText(countdownText, centerX, centerY);
     ctx.restore();
+}
+
+// カウントダウンを開始する関数
+function startCountdown() {
+    if (countdownStarted) return; // 既に開始されている場合は何もしない
+    
+    countdownStarted = true;
+    countdownNumber = 3;
+    gameState = 'countdown';
+    
+    // カウントダウン音を再生
+    if (countdownSound) {
+        playSoundEffect(countdownSound, 'カウントダウン');
+    }
+    
+    // カウントダウンを開始
+    countdownInterval = setInterval(() => {
+        countdownNumber--;
+        
+        // カウントダウン音を再生
+        if (countdownSound && countdownNumber > 0) {
+            playSoundEffect(countdownSound, 'カウントダウン');
+        }
+        
+        if (countdownNumber <= 0) {
+            // カウントダウン終了、ゲーム開始
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            gameState = 'playing';
+            countdownStarted = false;
+            
+            // カウントダウン音を停止
+            if (countdownSound && !countdownSound.paused) {
+                countdownSound.pause();
+                countdownSound.currentTime = 0;
+            }
+            
+            // BGMを開始
+            startBGM();
+            
+            // タイマーを自動開始
+            startTimer();
+            
+            console.log('ゲーム開始！');
+        }
+    }, 1000);
 }
 
 // --- メッセージ・スコア描画 ---
@@ -1010,17 +1230,23 @@ function drawMessage(message, subMessage, finalScore) {
         ctx.fillText(coinText, centerX, coinLabelY);
         ctx.restore();
         
-        // リスタート説明
+        // リスタート説明（点滅アニメーション付き）
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 24px "Fredoka One", cursive';
-        ctx.fillStyle = '#FFFFFF';
+        
+        // 点滅効果（時間に基づいて透明度を変更）
+        const blinkTime = Date.now() % 2000; // 2秒周期
+        const alpha = blinkTime < 1000 ? 1.0 : 0.3 + (blinkTime - 1000) / 1000 * 0.7;
+        
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         const restartY = centerY + 200;
-        ctx.strokeText('エンターキーまたはコントローラーのどのボタンでもリスタート', centerX, restartY);
-        ctx.fillText('エンターキーまたはコントローラーのどのボタンでもリスタート', centerX, restartY);
+        const restartMessage = 'エンターキーまたはコントローラーのどのボタンでもリスタート';
+        ctx.strokeText(restartMessage, centerX, restartY);
+        ctx.fillText(restartMessage, centerX, restartY);
         ctx.restore();
     } else if (finalScore !== undefined) {
         ctx.save();
@@ -1547,8 +1773,24 @@ function animate() {
             showGamepadStatus("コントローラーが接続されました", "success");
         }
         
+        // スタート画面：どのボタンでもスタート
+        if (gameState === 'startScreen') {
+            let anyButtonPressed = false;
+            for (let i = 0; i < gamepad.buttons.length; i++) {
+                if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+                    anyButtonPressed = true;
+                    break;
+                }
+            }
+            if (anyButtonPressed && !gamepadButtons.leftPressed) {
+                startCountdown();
+                gamepadButtons.leftPressed = true;
+            } else if (!anyButtonPressed) {
+                gamepadButtons.leftPressed = false;
+            }
+        }
         // 終了画面：どのボタンでもリスタート
-        if (gameState === 'gameOver') {
+        else if (gameState === 'gameOver') {
             let anyButtonPressed = false;
             for (let i = 0; i < gamepad.buttons.length; i++) {
                 if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
@@ -1565,72 +1807,72 @@ function animate() {
         }
         // ゲーム中：通常の操作
         else if (gameState === 'playing') {
-        // 右利きモード: 左スティックで移動、Bボタンでジャンプ
-        // 左利きモード: 右スティックで移動、十字ボタン右でジャンプ
-        if (isRightHanded) {
-            // 右利きモード: 左スティックのX軸（移動）
-            const xAxis = gamepad.axes[0];
-            if (xAxis < -0.5) { // 左に倒す
-                keys.left.pressed = true;
-                keys.right.pressed = false;
-                startTimer();
-            } else if (xAxis > 0.5) { // 右に倒す
-                keys.right.pressed = true;
-                keys.left.pressed = false;
-                startTimer();
-            } else { // ニュートラル
-                keys.left.pressed = false;
-                keys.right.pressed = false;
-            }
-
-            // 右ボタン（Bボタン、インデックス1）でジャンプ
-            if (gamepad.buttons[1] && gamepad.buttons[1].pressed) {
-                if (!gamepadButtons.rightPressed && gameState === 'playing' && player.velocity.y === 0) {
-                    player.velocity.y = -JUMP_POWER;
-                    gamepadButtons.rightPressed = true;
-                    // ジャンプ時の効果音
-                    playSoundEffect(jumpSound, 'ジャンプ');
+            // 右利きモード: 左スティックで移動、Bボタンでジャンプ
+            // 左利きモード: 右スティックで移動、十字ボタン右でジャンプ
+            if (isRightHanded) {
+                // 右利きモード: 左スティックのX軸（移動）
+                const xAxis = gamepad.axes[0];
+                if (xAxis < -0.5) { // 左に倒す
+                    keys.left.pressed = true;
+                    keys.right.pressed = false;
+                    startTimer();
+                } else if (xAxis > 0.5) { // 右に倒す
+                    keys.right.pressed = true;
+                    keys.left.pressed = false;
+                    startTimer();
+                } else { // ニュートラル
+                    keys.left.pressed = false;
+                    keys.right.pressed = false;
                 }
-                startBGM();
-                startTimer();
-            } else {
-                gamepadButtons.rightPressed = false;
-            }
 
-        } else {
-            // 左利きモード: 右スティックのX軸（移動）- axes[2]が右スティックのX軸
-            const rightStickX = gamepad.axes[2];
-            if (rightStickX < -0.5) { // 左に倒す
-                keys.left.pressed = true;
-                keys.right.pressed = false;
-                startTimer();
-            } else if (rightStickX > 0.5) { // 右に倒す
-                keys.right.pressed = true;
-                keys.left.pressed = false;
-                startTimer();
-            } else { // ニュートラル
-                keys.left.pressed = false;
-                keys.right.pressed = false;
-            }
-
-            // 十字ボタンの右ボタン（DPad Right、インデックス15）でジャンプ
-            if (gamepad.buttons[15] && gamepad.buttons[15].pressed) {
-                if (!gamepadButtons.rightPressed && gameState === 'playing') {
-                    // ジャンプ条件を緩和
-                    if (player.velocity.y === 0 || player.velocity.y > -2) {
+                // 右ボタン（Bボタン、インデックス1）でジャンプ
+                if (gamepad.buttons[1] && gamepad.buttons[1].pressed) {
+                    if (!gamepadButtons.rightPressed && gameState === 'playing' && player.velocity.y === 0) {
                         player.velocity.y = -JUMP_POWER;
                         gamepadButtons.rightPressed = true;
                         // ジャンプ時の効果音
                         playSoundEffect(jumpSound, 'ジャンプ');
                     }
+                    startBGM();
+                    startTimer();
+                } else {
+                    gamepadButtons.rightPressed = false;
                 }
-                startBGM();
-                startTimer();
-            } else {
-                gamepadButtons.rightPressed = false;
-            }
 
-        }
+            } else {
+                // 左利きモード: 右スティックのX軸（移動）- axes[2]が右スティックのX軸
+                const rightStickX = gamepad.axes[2];
+                if (rightStickX < -0.5) { // 左に倒す
+                    keys.left.pressed = true;
+                    keys.right.pressed = false;
+                    startTimer();
+                } else if (rightStickX > 0.5) { // 右に倒す
+                    keys.right.pressed = true;
+                    keys.left.pressed = false;
+                    startTimer();
+                } else { // ニュートラル
+                    keys.left.pressed = false;
+                    keys.right.pressed = false;
+                }
+
+                // 十字ボタンの右ボタン（DPad Right、インデックス15）でジャンプ
+                if (gamepad.buttons[15] && gamepad.buttons[15].pressed) {
+                    if (!gamepadButtons.rightPressed && gameState === 'playing') {
+                        // ジャンプ条件を緩和
+                        if (player.velocity.y === 0 || player.velocity.y > -2) {
+                            player.velocity.y = -JUMP_POWER;
+                            gamepadButtons.rightPressed = true;
+                            // ジャンプ時の効果音
+                            playSoundEffect(jumpSound, 'ジャンプ');
+                        }
+                    }
+                    startBGM();
+                    startTimer();
+                } else {
+                    gamepadButtons.rightPressed = false;
+                }
+
+            }
         }
     } else {
         if (gamepadConnected) {
@@ -1775,50 +2017,62 @@ function animate() {
 
     // --- 描画処理 ---
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBackground(scrollOffset); // 背景を描画
     
-    // 右利きモード：雲を描画、左利きモード：星を描画（背景レイヤー）
-    if (clouds && clouds.length > 0) {
-        if (isRightHanded) {
-            clouds.forEach(c => {
-                if (c.position.x - scrollOffset * 0.5 + c.size * 2 > 0 && c.position.x - scrollOffset * 0.5 - c.size * 2 < canvas.width) {
-                    c.draw(scrollOffset);
-                }
-            });
-        } else if (stars && stars.length > 0) {
-            stars.forEach(s => {
-                if (s.position.x - scrollOffset * 0.5 + s.size * 2 > 0 && s.position.x - scrollOffset * 0.5 - s.size * 2 < canvas.width) {
-                    s.draw(scrollOffset);
-                }
+    // スタート画面
+    if (gameState === 'startScreen') {
+        drawStartScreen();
+    }
+    // カウントダウン画面
+    else if (gameState === 'countdown') {
+        drawCountdown();
+    }
+    // ゲーム中または終了画面
+    else {
+        drawBackground(scrollOffset); // 背景を描画
+        
+        // 右利きモード：雲を描画、左利きモード：星を描画（背景レイヤー）
+        if (clouds && clouds.length > 0) {
+            if (isRightHanded) {
+                clouds.forEach(c => {
+                    if (c.position.x - scrollOffset * 0.5 + c.size * 2 > 0 && c.position.x - scrollOffset * 0.5 - c.size * 2 < canvas.width) {
+                        c.draw(scrollOffset);
+                    }
+                });
+            } else if (stars && stars.length > 0) {
+                stars.forEach(s => {
+                    if (s.position.x - scrollOffset * 0.5 + s.size * 2 > 0 && s.position.x - scrollOffset * 0.5 - s.size * 2 < canvas.width) {
+                        s.draw(scrollOffset);
+                    }
+                });
+            }
+        }
+        
+        // 山を描画（雲/星の後、地面の前の背景レイヤー）
+        if (mountains && mountains.length > 0) {
+            mountains.forEach(m => {
+                m.draw(scrollOffset);
             });
         }
-    }
-    
-    // 山を描画（雲/星の後、地面の前の背景レイヤー）
-    if (mountains && mountains.length > 0) {
-        mountains.forEach(m => {
-            m.draw(scrollOffset);
-        });
-    }
-    
-    if (gameState === 'playing') {
-        if (platforms && platforms.length > 0) platforms.forEach(p => p.draw(scrollOffset));
-        if (obstacles && obstacles.length > 0) obstacles.forEach(o => o.draw(scrollOffset));
-        if (coins && coins.length > 0) coins.forEach(c => c.draw(scrollOffset));
-        if (enemies && enemies.length > 0) enemies.forEach(e => e.draw(scrollOffset));
-        if (player) player.draw(scrollOffset);
-        drawScore();
-    } else if (gameState === 'gameOver') {
-        // ゲーム終了時も背景とプレイヤーを描画（最後の状態を表示）
-        if (platforms && platforms.length > 0) platforms.forEach(p => p.draw(scrollOffset));
-        if (obstacles && obstacles.length > 0) obstacles.forEach(o => o.draw(scrollOffset));
-        if (coins && coins.length > 0) coins.forEach(c => c.draw(scrollOffset));
-        if (enemies && enemies.length > 0) enemies.forEach(e => e.draw(scrollOffset));
-        if (player) player.draw(scrollOffset);
-        // ゲーム終了時にBGMを停止
-        stopBGM();
-        // 終了画面を描画（最後に描画して上書きされないように）
-        drawMessage('タイムアップ！', 'エンターキーまたはコントローラーのどのボタンでもリスタート', score);
+        
+        if (gameState === 'playing') {
+            if (platforms && platforms.length > 0) platforms.forEach(p => p.draw(scrollOffset));
+            if (obstacles && obstacles.length > 0) obstacles.forEach(o => o.draw(scrollOffset));
+            if (coins && coins.length > 0) coins.forEach(c => c.draw(scrollOffset));
+            if (enemies && enemies.length > 0) enemies.forEach(e => e.draw(scrollOffset));
+            if (player) player.draw(scrollOffset);
+            drawScore();
+        } else if (gameState === 'gameOver') {
+            // ゲーム終了時も背景とプレイヤーを描画（最後の状態を表示）
+            if (platforms && platforms.length > 0) platforms.forEach(p => p.draw(scrollOffset));
+            if (obstacles && obstacles.length > 0) obstacles.forEach(o => o.draw(scrollOffset));
+            if (coins && coins.length > 0) coins.forEach(c => c.draw(scrollOffset));
+            if (enemies && enemies.length > 0) enemies.forEach(e => e.draw(scrollOffset));
+            if (player) player.draw(scrollOffset);
+            // ゲーム終了時にBGMを停止
+            stopBGM();
+            // 終了画面を描画（最後に描画して上書きされないように）
+            drawMessage('タイムアップ！', 'エンターキーまたはコントローラーのどのボタンでもリスタート', score);
+        }
     }
     
 }
@@ -1832,7 +2086,13 @@ window.addEventListener('keydown', (e) => {
     if (code === 'ArrowUp' || code === 'ArrowDown' || code === 'ArrowLeft' || code === 'ArrowRight' || code === 'Space') {
         e.preventDefault();
     }
-    if (gameState === 'playing') { 
+    if (gameState === 'startScreen') {
+        // スタート画面：エンターキーでカウントダウン開始
+        if (code === 'Enter') {
+            e.preventDefault();
+            startCountdown();
+        }
+    } else if (gameState === 'playing') { 
         // タイマーを開始
         startTimer();
         switch (code) { 
