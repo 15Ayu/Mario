@@ -12,7 +12,10 @@ body {
 
 h1 {
     margin: 10px 0;
-    font-size: 24px;
+    font-size: 32px;
+    font-family: 'Fredoka One', cursive;
+    color: #333;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 canvas {

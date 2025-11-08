@@ -6,11 +6,11 @@
     <title>横スクロールゲーム (制限時間2分) - 自動左右切替</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Comic+Neue:wght@400;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>横スクロールゲーム (制限時間2分) - 自動左右切替</h1>
+    <h1>目指せ両利き！P<span style="color: #0066FF;">L</span>/<span style="color: #FF0000;">R</span>amちゃんゲーム</h1>
     <div id="gamepadInfo">
         <p><strong>スコアリング：</strong></p>
         <ul>
@@ -27,7 +27,6 @@
                 <ul>
                     <li>移動：右スティック（左右）</li>
                     <li>ジャンプ：十字ボタン右</li>
-                    <li>リスタート：十字ボタン左</li>
                 </ul>
             </div>
             <div class="controlSection">
@@ -35,12 +34,10 @@
                 <ul>
                     <li>移動：左スティック（左右）</li>
                     <li>ジャンプ：右ボタン（Bボタン）</li>
-                    <li>リスタート：左ボタン（Xボタン）</li>
                 </ul>
             </div>
         </div>
     </div>
-    <div id="gamepadStatus"></div>
     <canvas id="gameCanvas" width="800" height="480"></canvas>
     <!-- BGM用のaudio要素 -->
     <audio id="bgm" loop preload="auto">
