@@ -11,31 +11,53 @@
 </head>
 <body>
     <h1>目指せ両利き！P<span style="color: #0066FF;">L</span>/<span style="color: #FF0000;">R</span>amちゃんゲーム</h1>
+    <div id="gameRules">
+        <h2>🎮 ゲームのルール 🎮</h2>
+        <div class="rules-content">
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <div class="rule-icon">🎮</div>
+                    <p class="rule-text">このゲームは<strong>ゲームコントローラ</strong>で遊ぶゲームです。キーボードでも操作できますが、コントローラでのプレイを推奨します！</p>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">⏱️</div>
+                    <p class="rule-text">制限時間<strong>2分間</strong>の中で、<strong class="highlight">ランダムなタイミングで左右のコントローラの機能が自動的に切り替わります。</strong>両手をバランスよく使う練習になります！</p>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">⭐</div>
+                    <p class="rule-text">コインを集めたり、モンスターやロケットを倒したりしてスコアを稼ぎましょう。制限時間内にどれだけスコアを獲得できるか競います！</p>
+                </div>
+            </div>
+            <div class="rule-item characters">
+                <h3 class="character-title">🌟 キャラクター紹介 🌟</h3>
+                <div class="character-info">
+                    <div class="character-item">
+                        <img src="../Image/Plam.png" alt="PLamちゃん" class="character-image">
+                        <p class="character-name">左利き：<strong>PLamちゃん</strong></p>
+                    </div>
+                    <div class="character-item">
+                        <img src="../Image/Pram.png" alt="PRamちゃん" class="character-image">
+                        <p class="character-name">右利き：<strong>PRamちゃん</strong></p>
+                    </div>
+                </div>
+                <p class="character-description">プラム（梅）ちゃんは、津田塾大学の創設者である<strong>津田梅子</strong>をイメージして作られたキャラクターです。プラムちゃんと一緒に楽しく左右の手を鍛えて、両利きを目指しましょう！🌸</p>
+            </div>
+        </div>
+    </div>
     <div id="gamepadInfo">
-        <p><strong>スコアリング：</strong></p>
-        <ul>
-            <li><canvas class="icon-canvas" id="coinIcon" width="20" height="20"></canvas> コイン：スコア +100</li>
-            <li><canvas class="icon-canvas" id="rocketIcon" width="20" height="20"></canvas> ロケットを踏みつける：スコア +100</li>
-            <li><canvas class="icon-canvas" id="rocketIcon2" width="20" height="20"></canvas> ロケットに衝突：スコア -100</li>
-            <li><canvas class="icon-canvas" id="enemyIcon" width="20" height="20"></canvas> 敵を踏み潰す：スコア +100</li>
-            <li><canvas class="icon-canvas" id="enemyIcon2" width="20" height="20"></canvas> 敵に衝突：スコア -100</li>
-        </ul>
-        <p><strong>操作方法：</strong></p>
-        <div id="controlsLayout">
-            <div class="controlSection">
-                <p><strong>左利きモード：</strong></p>
-                <ul>
-                    <li>移動：右スティック（左右）</li>
-                    <li>ジャンプ：十字ボタン右</li>
-                </ul>
-            </div>
-            <div class="controlSection">
-                <p><strong>右利きモード：</strong></p>
-                <ul>
-                    <li>移動：左スティック（左右）</li>
-                    <li>ジャンプ：右ボタン（Bボタン）</li>
-                </ul>
-            </div>
+        <div class="info-section">
+            <h2>スコアリング</h2>
+            <ul>
+                <li><canvas class="icon-canvas" id="coinIcon" width="20" height="20"></canvas> コイン：スコア +100</li>
+                <li><canvas class="icon-canvas" id="rocketIcon" width="20" height="20"></canvas> ロケットを踏みつける：スコア +100</li>
+                <li><canvas class="icon-canvas" id="rocketIcon2" width="20" height="20"></canvas> ロケットに衝突：スコア -100</li>
+                <li><canvas class="icon-canvas" id="enemyIcon" width="20" height="20"></canvas> 敵を踏み潰す：スコア +100</li>
+                <li><canvas class="icon-canvas" id="enemyIcon2" width="20" height="20"></canvas> 敵に衝突：スコア -100</li>
+            </ul>
+        </div>
+        <div class="info-section">
+            <h2>操作方法</h2>
+            <img src="../Image/Mapping.png" alt="操作方法" class="mapping-image">
         </div>
     </div>
     <canvas id="gameCanvas" width="800" height="480"></canvas>
