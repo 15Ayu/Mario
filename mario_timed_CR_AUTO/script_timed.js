@@ -2077,10 +2077,6 @@ function animate() {
 // --- イベントリスナー ---
 window.addEventListener('keydown', (e) => { 
     const code = e.code;
-    // エンターキー以外の場合のみBGMを開始
-    if (code !== 'Enter') {
-        startBGM();
-    }
     // ゲームで使用するキーのデフォルト動作を防止
     if (code === 'ArrowUp' || code === 'ArrowDown' || code === 'ArrowLeft' || code === 'ArrowRight' || code === 'Space') {
         e.preventDefault();
@@ -2091,7 +2087,11 @@ window.addEventListener('keydown', (e) => {
             e.preventDefault();
             startCountdown();
         }
-    } else if (gameState === 'playing') { 
+    } else if (gameState === 'playing') {
+        // ゲーム中のみBGMを開始（エンターキー以外）
+        if (code !== 'Enter') {
+            startBGM();
+        } 
         // タイマーを開始
         startTimer();
         switch (code) { 
