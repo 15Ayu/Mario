@@ -635,9 +635,6 @@ function init() {
     // 左右切替の初期化
     isRightHanded = Math.random() < 0.5; // ランダムに初期状態を設定
     scheduleNextSwitch();
-
-    // BGMを再生開始（ループ再生）
-    startBGM();
     
     // コントローラー状態を更新
     updateGamepadStatus();
