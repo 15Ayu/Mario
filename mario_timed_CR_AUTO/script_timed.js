@@ -2080,8 +2080,10 @@ function animate() {
 // --- イベントリスナー ---
 window.addEventListener('keydown', (e) => { 
     const code = e.code;
-    // BGMを開始
-    startBGM();
+    // エンターキー以外の場合のみBGMを開始
+    if (code !== 'Enter') {
+        startBGM();
+    }
     // ゲームで使用するキーのデフォルト動作を防止
     if (code === 'ArrowUp' || code === 'ArrowDown' || code === 'ArrowLeft' || code === 'ArrowRight' || code === 'Space') {
         e.preventDefault();
@@ -2171,8 +2173,6 @@ document.addEventListener('keydown', () => {
 
 // マウスクリック時にもコントローラーをチェック
 document.addEventListener('click', () => {
-    // BGMを開始
-    startBGM();
     if (!gamepadConnected) {
         checkGamepadConnection();
     }
