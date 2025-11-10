@@ -854,7 +854,7 @@ function drawStartScreen() {
     ctx.font = 'bold 40px "Fredoka One", cursive';
     
     // タイトル全体の幅を計算して中央揃え
-    const fullTitle = '目指せ両利き！PL/Ramちゃんゲーム';
+    const fullTitle = '目指せ両利き！PL/Rumちゃんゲーム';
     const fullTitleWidth = ctx.measureText(fullTitle).width;
     let currentX = centerX - fullTitleWidth / 2;
     
@@ -895,12 +895,12 @@ function drawStartScreen() {
     ctx.fillText('R', currentX, titleY);
     currentX += rWidth;
     
-    // amちゃんゲームを描画
+    // umちゃんゲームを描画
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 4;
-    ctx.strokeText('amちゃんゲーム', currentX, titleY);
-    ctx.fillText('amちゃんゲーム', currentX, titleY);
+    ctx.strokeText('umちゃんゲーム', currentX, titleY);
+    ctx.fillText('umちゃんゲーム', currentX, titleY);
     
     ctx.restore();
     
@@ -909,7 +909,7 @@ function drawStartScreen() {
     const imageHeight = 180; // 2:3の比率を維持
     const imageY = 190; // タイトルの下に配置
     
-    // Plamちゃん（左側）の光るエフェクト
+    // Plumちゃん（左側）の光るエフェクト
     if (plamImage && plamImage.complete) {
         const plamX = centerX - 180;
         // 光るエフェクト（グラデーション）
@@ -925,7 +925,7 @@ function drawStartScreen() {
         ctx.drawImage(plamImage, plamX, imageY, imageWidth, imageHeight);
     }
     
-    // Pramちゃん（右側）の光るエフェクト
+    // Prumちゃん（右側）の光るエフェクト
     if (pramImage && pramImage.complete) {
         const pramX = centerX + 80;
         // 光るエフェクト（グラデーション）
@@ -1507,7 +1507,7 @@ function drawScore() {
     
     // テキストを描画（文字の強調表示、プラムちゃんのすぐ右隣に）
     if (isRightHanded) {
-        // 右利きモード：PRamちゃん（Rを赤色で強調）
+        // 右利きモード：PRumちゃん（Rを赤色で強調）
         const textX = imageX + imageWidth + 5; // プラムちゃんのすぐ右隣
         ctx.textAlign = 'left';
         
@@ -1526,15 +1526,15 @@ function drawScore() {
         ctx.strokeText('R', textX + pWidth, modeY);
         ctx.fillText('R', textX + pWidth, modeY);
         
-        // amちゃんを描画
+        // umちゃんを描画
         const rWidth = ctx.measureText('R').width;
         ctx.fillStyle = '#FFFFFF';
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 3;
-        ctx.strokeText('amちゃん', textX + pWidth + rWidth, modeY);
-        ctx.fillText('amちゃん', textX + pWidth + rWidth, modeY);
+        ctx.strokeText('umちゃん', textX + pWidth + rWidth, modeY);
+        ctx.fillText('umちゃん', textX + pWidth + rWidth, modeY);
     } else {
-        // 左利きモード：PLamちゃん（Lを青色で強調）
+        // 左利きモード：PLumちゃん（Lを青色で強調）
         const textX = imageX + imageWidth + 5; // プラムちゃんのすぐ右隣
         ctx.textAlign = 'left';
         
@@ -1553,13 +1553,13 @@ function drawScore() {
         ctx.strokeText('L', textX + pWidth, modeY);
         ctx.fillText('L', textX + pWidth, modeY);
         
-        // amちゃんを描画
+        // umちゃんを描画
         const lWidth = ctx.measureText('L').width;
         ctx.fillStyle = '#FFFFFF';
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 3;
-        ctx.strokeText('amちゃん', textX + pWidth + lWidth, modeY);
-        ctx.fillText('amちゃん', textX + pWidth + lWidth, modeY);
+        ctx.strokeText('umちゃん', textX + pWidth + lWidth, modeY);
+        ctx.fillText('umちゃん', textX + pWidth + lWidth, modeY);
     }
     
     ctx.restore();
