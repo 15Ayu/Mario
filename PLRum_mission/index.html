@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横スクロールゲーム (制限時間2分) - 自動左右切替</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Comic+Neue:wght@400;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>目指せ両利き！P<span style="color: #0066FF;">L</span>/<span style="color: #FF0000;">R</span>umちゃんゲーム</h1>
+    <div id="gameRules">
+        <h2>🎮 ゲームのルール 🎮</h2>
+        <div class="rules-content">
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <div class="rule-icon">🎮</div>
+                    <p class="rule-text">このゲームは<strong>ゲームコントローラ</strong>で遊ぶゲームです。キーボードのカーソルキーやスペースキーでも操作できますが、コントローラでのプレイを推奨します！</p>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">⏱️</div>
+                    <p class="rule-text">制限時間<strong>2分間</strong>の中で、<strong class="highlight">ランダムなタイミングで左右のコントローラの機能が自動的に切り替わります。</strong>両手をバランスよく使う練習になります！</p>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon">⭐</div>
+                    <p class="rule-text">コインを集めたり、モンスターやロケットを倒したりしてスコアを稼ぎましょう。制限時間内にどれだけスコアを獲得できるか競います！</p>
+                </div>
+            </div>
+            <div class="rule-item characters">
+                <h3 class="character-title">🌸 キャラクター紹介 🌸</h3>
+                <div class="character-info">
+                    <div class="character-item">
+                        <img src="../Image/Plam.png" alt="PLumちゃん" class="character-image">
+                        <p class="character-name">左利き：<strong>PLumちゃん</strong></p>
+                    </div>
+                    <div class="character-item">
+                        <img src="../Image/Pram.png" alt="PRumちゃん" class="character-image">
+                        <p class="character-name">右利き：<strong>PRumちゃん</strong></p>
+                    </div>
+                </div>
+                <p class="character-description">プラム（梅）ちゃんは、津田塾大学の創設者である<strong>津田梅子</strong>をイメージして作られたキャラクターです。<br>プラムちゃんと一緒に楽しく左右の手を鍛えて、両利きを目指しましょう！🌸</p>
+            </div>
+        </div>
+    </div>
+    <div id="gamepadInfo">
+        <div class="info-section">
+            <h2>スコアリング</h2>
+            <ul>
+                <li><canvas class="icon-canvas" id="coinIcon" width="20" height="20"></canvas> コイン：スコア +100</li>
+                <li><canvas class="icon-canvas" id="rocketIcon" width="20" height="20"></canvas> ロケットを踏みつける：スコア +100</li>
+                <li><canvas class="icon-canvas" id="rocketIcon2" width="20" height="20"></canvas> ロケットに衝突：スコア -100</li>
+                <li><canvas class="icon-canvas" id="enemyIcon" width="20" height="20"></canvas> 敵を踏み潰す：スコア +100</li>
+                <li><canvas class="icon-canvas" id="enemyIcon2" width="20" height="20"></canvas> 敵に衝突：スコア -100</li>
+            </ul>
+        </div>
+        <div class="info-section">
+            <h2>操作方法</h2>
+            <img src="../Image/Mapping.png" alt="操作方法" class="mapping-image">
+        </div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+    <!-- BGM用のaudio要素 -->
+    <audio id="bgm" loop preload="auto">
+        <source src="../Music/ABSOLUTE_FUNNY_FIELD.mp3" type="audio/mpeg">
+    </audio>
+    <!-- 効果音用のaudio要素 -->
+    <audio id="coinSound" preload="auto">
+        <source src="../Music/コイン獲得音.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="explosionSound" preload="auto">
+        <source src="../Music/ポップな爆発.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="errorSound" preload="auto">
+        <source src="../Music/エラー音.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="retroSound" preload="auto">
+        <source src="../Music/レトロアクション.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="countdownSound" preload="auto">
+        <source src="../Music/カウントダウン.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="gameOverSound" preload="auto">
+        <source src="../Music/終了.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="jumpSound" preload="auto">
+        <source src="../Music/レトロジャンプ.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="modeSwitchSound" preload="auto">
+        <source src="../Music/モード切り替え音.mp3" type="audio/mpeg">
+    </audio>
+    <script src="script_timed.js"></script>
+</body>
+</html>
+
