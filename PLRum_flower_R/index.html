@@ -25,7 +25,7 @@
                 </div>
                 <div class="rule-item">
                     <div class="rule-icon">⭐</div>
-                    <p class="rule-text">コインを集めたり、モンスターやロケットを倒したりしてスコアを稼ぎましょう。モンスター撃破でランダムに梅が出現し、5個集めると梅の花が咲きます。制限時間内にどれだけスコアを獲得できるか競います！</p>
+                    <p class="rule-text">コインを集めたり、モンスターやロケットを倒したりしてスコアを稼ぎましょう。モンスター撃破でランダムに梅が出現し、7個集めると梅の花が咲きます。制限時間内にどれだけスコアを獲得できるか競います！</p>
                 </div>
             </div>
             <div class="rule-item characters">
@@ -49,7 +49,7 @@
             <h2>スコアリング</h2>
             <ul>
                 <li><canvas class="icon-canvas" id="coinIcon" width="20" height="20"></canvas> コイン：スコア +100</li>
-                <li><canvas class="icon-canvas" id="plumIcon" width="20" height="20"></canvas> 梅：モンスター撃破でランダムに出現。<strong>5個集めると梅の花が咲く！</strong></li>
+                <li><canvas class="icon-canvas" id="plumIcon" width="20" height="20"></canvas> 梅：モンスター撃破でランダムに出現。<strong>7個集めると梅の花が咲く！</strong></li>
                 <li><canvas class="icon-canvas" id="rocketIcon" width="20" height="20"></canvas> ロケットを踏みつける：スコア +100</li>
                 <li><canvas class="icon-canvas" id="rocketIcon2" width="20" height="20"></canvas> ロケットに衝突：スコア -100</li>
                 <li><canvas class="icon-canvas" id="enemyIcon" width="20" height="20"></canvas> 敵を踏み潰す：スコア +100</li>
@@ -72,6 +72,8 @@
                     <h4>ロケット</h4>
                     <p>撃退数: <span id="totalRocketsDefeated">0</span> / 登場数: <span id="totalRocketsSpawned">0</span></p>
                     <p>撃退率: <span id="totalRocketDefeatRate">0.0</span>%</p>
+                    <p>被弾数: <span id="totalRocketCollisions">0</span> / 登場数: <span id="totalRocketsSpawned">0</span></p>
+                    <p>被弾率: <span id="totalRocketCollisionRate">0.0</span>%</p>
                 </div>
                 <div class="stat-item">
                     <h4>モンスター</h4>
@@ -83,6 +85,11 @@
                     <p>獲得数: <span id="totalCoinsCollected">0</span> / 登場数: <span id="totalCoinsSpawned">0</span></p>
                     <p>獲得率: <span id="totalCoinCollectionRate">0.0</span>%</p>
                 </div>
+                <div class="stat-item">
+                    <h4>梅</h4>
+                    <p>獲得数: <span id="totalPlumsCollected">0</span> / 登場数: <span id="totalPlumsSpawned">0</span></p>
+                    <p>獲得率: <span id="totalPlumCollectionRate">0.0</span>%</p>
+                </div>
             </div>
         </div>
         <div class="stats-section">
@@ -93,16 +100,20 @@
                     <p>ロケット被弾: <span id="rightHandedObstacleCount">0</span>回</p>
                     <p>モンスター衝突: <span id="rightHandedEnemyCount">0</span>回</p>
                     <p>ロケット撃退: <span id="rightHandedRocketsDefeated">0</span> / <span id="rightHandedRocketsSpawned">0</span> (<span id="rightHandedRocketDefeatRate">0.0</span>%)</p>
+                    <p>ロケット被弾: <span id="rightHandedObstacleCollisions">0</span> / <span id="rightHandedRocketsSpawned">0</span> (<span id="rightHandedRocketCollisionRate">0.0</span>%)</p>
                     <p>モンスター撃退: <span id="rightHandedEnemiesDefeated">0</span> / <span id="rightHandedEnemiesSpawned">0</span> (<span id="rightHandedEnemyDefeatRate">0.0</span>%)</p>
                     <p>コイン獲得: <span id="rightHandedCoinsCollected">0</span> / <span id="rightHandedCoinsSpawned">0</span> (<span id="rightHandedCoinCollectionRate">0.0</span>%)</p>
+                    <p>梅獲得: <span id="rightHandedPlumsCollected">0</span> / <span id="rightHandedPlumsSpawned">0</span> (<span id="rightHandedPlumCollectionRate">0.0</span>%)</p>
                 </div>
                 <div class="stat-item">
                     <h4>左利きモード</h4>
                     <p>ロケット被弾: <span id="leftHandedObstacleCount">0</span>回</p>
                     <p>モンスター衝突: <span id="leftHandedEnemyCount">0</span>回</p>
                     <p>ロケット撃退: <span id="leftHandedRocketsDefeated">0</span> / <span id="leftHandedRocketsSpawned">0</span> (<span id="leftHandedRocketDefeatRate">0.0</span>%)</p>
+                    <p>ロケット被弾: <span id="leftHandedObstacleCollisions">0</span> / <span id="leftHandedRocketsSpawned">0</span> (<span id="leftHandedRocketCollisionRate">0.0</span>%)</p>
                     <p>モンスター撃退: <span id="leftHandedEnemiesDefeated">0</span> / <span id="leftHandedEnemiesSpawned">0</span> (<span id="leftHandedEnemyDefeatRate">0.0</span>%)</p>
                     <p>コイン獲得: <span id="leftHandedCoinsCollected">0</span> / <span id="leftHandedCoinsSpawned">0</span> (<span id="leftHandedCoinCollectionRate">0.0</span>%)</p>
+                    <p>梅獲得: <span id="leftHandedPlumsCollected">0</span> / <span id="leftHandedPlumsSpawned">0</span> (<span id="leftHandedPlumCollectionRate">0.0</span>%)</p>
                 </div>
             </div>
         </div>
