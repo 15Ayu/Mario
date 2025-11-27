@@ -89,7 +89,7 @@ const PLAYER_SPEED = 5;
 const JUMP_POWER = 12;
 const COIN_SCORE = 100;
 const STAGE_LENGTH = 12000; // ステージの全長
-const UME_TARGET_COUNT = 5; // 梅の花を咲かせるために必要な梅の数
+const UME_TARGET_COUNT = 7; // 梅の花を咲かせるために必要な梅の数
 const UME_DROP_RATE = 0.65; // モンスター撃破時に梅が出る確率
 const MODE_TARGET_TIME = 60; // 各モードの目標滞在時間（秒）
 
@@ -144,6 +144,7 @@ let enemiesDefeated = 0; // モンスター撃退数（踏みつけた回数）
 let rocketsSpawned = 0; // ロケット登場数
 let enemiesSpawned = 0; // モンスター登場数
 let coinsSpawned = 0; // コイン登場数
+let plumsSpawned = 0; // 梅の登場数
 
 // モード別統計カウンター
 let rightHandedObstacleCollisions = 0; // 右利きモードのロケット被弾回数
@@ -163,9 +164,15 @@ let leftHandedCoinsCollected = 0; // 左利きモードのコイン獲得数
 let rightHandedRocketsSpawned = 0; // 右利きモードのロケット登場数
 let rightHandedEnemiesSpawned = 0; // 右利きモードのモンスター登場数
 let rightHandedCoinsSpawned = 0; // 右利きモードのコイン登場数
+let rightHandedPlumsSpawned = 0; // 右利きモードの梅の登場数
 let leftHandedRocketsSpawned = 0; // 左利きモードのロケット登場数
 let leftHandedEnemiesSpawned = 0; // 左利きモードのモンスター登場数
 let leftHandedCoinsSpawned = 0; // 左利きモードのコイン登場数
+let leftHandedPlumsSpawned = 0; // 左利きモードの梅の登場数
+
+// モード別梅獲得カウンター
+let rightHandedPlumsCollected = 0; // 右利きモードの梅の獲得数
+let leftHandedPlumsCollected = 0; // 左利きモードの梅の獲得数
 
 // 切り替え後10秒間の記録
 let postSwitchRecords = []; // 切り替え後10秒間の記録配列
@@ -789,6 +796,7 @@ function init() {
     rocketsSpawned = 0;
     enemiesSpawned = 0;
     coinsSpawned = 0;
+    plumsSpawned = 0;
     
     // モード別統計カウンターをリセット
     rightHandedObstacleCollisions = 0;
@@ -808,9 +816,15 @@ function init() {
     rightHandedRocketsSpawned = 0;
     rightHandedEnemiesSpawned = 0;
     rightHandedCoinsSpawned = 0;
+    rightHandedPlumsSpawned = 0;
     leftHandedRocketsSpawned = 0;
     leftHandedEnemiesSpawned = 0;
     leftHandedCoinsSpawned = 0;
+    leftHandedPlumsSpawned = 0;
+    
+    // モード別梅獲得カウンターをリセット
+    rightHandedPlumsCollected = 0;
+    leftHandedPlumsCollected = 0;
     
     // 切り替え後10秒間の記録をリセット
     postSwitchRecords = [];
@@ -2009,12 +2023,23 @@ function updateStatisticsDisplay() {
     const totalCoinsCollectedEl = document.getElementById('totalCoinsCollected');
     const totalCoinsSpawnedEl = document.getElementById('totalCoinsSpawned');
     const totalCoinCollectionRateEl = document.getElementById('totalCoinCollectionRate');
+    const totalPlumsCollectedEl = document.getElementById('totalPlumsCollected');
+    const totalPlumsSpawnedEl = document.getElementById('totalPlumsSpawned');
+    const totalPlumCollectionRateEl = document.getElementById('totalPlumCollectionRate');
+    const totalRocketCollisionsEl = document.getElementById('totalRocketCollisions');
+    const totalRocketCollisionRateEl = document.getElementById('totalRocketCollisionRate');
     
     if (totalRocketsDefeatedEl) totalRocketsDefeatedEl.textContent = rocketsDefeated;
     if (totalRocketsSpawnedEl) totalRocketsSpawnedEl.textContent = rocketsSpawned;
     if (totalRocketDefeatRateEl) {
         const rate = rocketsSpawned > 0 ? (rocketsDefeated / rocketsSpawned * 100).toFixed(1) : '0.0';
         totalRocketDefeatRateEl.textContent = rate;
+    }
+    
+    if (totalRocketCollisionsEl) totalRocketCollisionsEl.textContent = obstacleCollisions;
+    if (totalRocketCollisionRateEl) {
+        const rate = rocketsSpawned > 0 ? (obstacleCollisions / rocketsSpawned * 100).toFixed(1) : '0.0';
+        totalRocketCollisionRateEl.textContent = rate;
     }
     
     if (totalEnemiesDefeatedEl) totalEnemiesDefeatedEl.textContent = enemiesDefeated;
@@ -2029,6 +2054,13 @@ function updateStatisticsDisplay() {
     if (totalCoinCollectionRateEl) {
         const rate = coinsSpawned > 0 ? (coinsCollected / coinsSpawned * 100).toFixed(1) : '0.0';
         totalCoinCollectionRateEl.textContent = rate;
+    }
+    
+    if (totalPlumsCollectedEl) totalPlumsCollectedEl.textContent = umeCollected;
+    if (totalPlumsSpawnedEl) totalPlumsSpawnedEl.textContent = plumsSpawned;
+    if (totalPlumCollectionRateEl) {
+        const rate = plumsSpawned > 0 ? (umeCollected / plumsSpawned * 100).toFixed(1) : '0.0';
+        totalPlumCollectionRateEl.textContent = rate;
     }
     
     // モード別統計を更新
@@ -2052,6 +2084,11 @@ function updateStatisticsDisplay() {
     const rightCoinsCollectedEl = document.getElementById('rightHandedCoinsCollected');
     const rightCoinsSpawnedEl = document.getElementById('rightHandedCoinsSpawned');
     const rightCoinCollectionRateEl = document.getElementById('rightHandedCoinCollectionRate');
+    const rightPlumsCollectedEl = document.getElementById('rightHandedPlumsCollected');
+    const rightPlumsSpawnedEl = document.getElementById('rightHandedPlumsSpawned');
+    const rightPlumCollectionRateEl = document.getElementById('rightHandedPlumCollectionRate');
+    const rightObstacleCollisionsEl = document.getElementById('rightHandedObstacleCollisions');
+    const rightRocketCollisionRateEl = document.getElementById('rightHandedRocketCollisionRate');
     
     if (rightRocketsDefeatedEl) rightRocketsDefeatedEl.textContent = rightHandedRocketsDefeated;
     if (rightRocketsSpawnedEl) rightRocketsSpawnedEl.textContent = rightHandedRocketsSpawned;
@@ -2074,6 +2111,19 @@ function updateStatisticsDisplay() {
         rightCoinCollectionRateEl.textContent = rate;
     }
     
+    if (rightPlumsCollectedEl) rightPlumsCollectedEl.textContent = rightHandedPlumsCollected;
+    if (rightPlumsSpawnedEl) rightPlumsSpawnedEl.textContent = rightHandedPlumsSpawned;
+    if (rightPlumCollectionRateEl) {
+        const rate = rightHandedPlumsSpawned > 0 ? (rightHandedPlumsCollected / rightHandedPlumsSpawned * 100).toFixed(1) : '0.0';
+        rightPlumCollectionRateEl.textContent = rate;
+    }
+    
+    if (rightObstacleCollisionsEl) rightObstacleCollisionsEl.textContent = rightHandedObstacleCollisions;
+    if (rightRocketCollisionRateEl) {
+        const rate = rightHandedRocketsSpawned > 0 ? (rightHandedObstacleCollisions / rightHandedRocketsSpawned * 100).toFixed(1) : '0.0';
+        rightRocketCollisionRateEl.textContent = rate;
+    }
+    
     const leftRocketsDefeatedEl = document.getElementById('leftHandedRocketsDefeated');
     const leftRocketsSpawnedEl = document.getElementById('leftHandedRocketsSpawned');
     const leftRocketDefeatRateEl = document.getElementById('leftHandedRocketDefeatRate');
@@ -2083,6 +2133,11 @@ function updateStatisticsDisplay() {
     const leftCoinsCollectedEl = document.getElementById('leftHandedCoinsCollected');
     const leftCoinsSpawnedEl = document.getElementById('leftHandedCoinsSpawned');
     const leftCoinCollectionRateEl = document.getElementById('leftHandedCoinCollectionRate');
+    const leftPlumsCollectedEl = document.getElementById('leftHandedPlumsCollected');
+    const leftPlumsSpawnedEl = document.getElementById('leftHandedPlumsSpawned');
+    const leftPlumCollectionRateEl = document.getElementById('leftHandedPlumCollectionRate');
+    const leftObstacleCollisionsEl = document.getElementById('leftHandedObstacleCollisions');
+    const leftRocketCollisionRateEl = document.getElementById('leftHandedRocketCollisionRate');
     
     if (leftRocketsDefeatedEl) leftRocketsDefeatedEl.textContent = leftHandedRocketsDefeated;
     if (leftRocketsSpawnedEl) leftRocketsSpawnedEl.textContent = leftHandedRocketsSpawned;
@@ -2103,6 +2158,19 @@ function updateStatisticsDisplay() {
     if (leftCoinCollectionRateEl) {
         const rate = leftHandedCoinsSpawned > 0 ? (leftHandedCoinsCollected / leftHandedCoinsSpawned * 100).toFixed(1) : '0.0';
         leftCoinCollectionRateEl.textContent = rate;
+    }
+    
+    if (leftPlumsCollectedEl) leftPlumsCollectedEl.textContent = leftHandedPlumsCollected;
+    if (leftPlumsSpawnedEl) leftPlumsSpawnedEl.textContent = leftHandedPlumsSpawned;
+    if (leftPlumCollectionRateEl) {
+        const rate = leftHandedPlumsSpawned > 0 ? (leftHandedPlumsCollected / leftHandedPlumsSpawned * 100).toFixed(1) : '0.0';
+        leftPlumCollectionRateEl.textContent = rate;
+    }
+    
+    if (leftObstacleCollisionsEl) leftObstacleCollisionsEl.textContent = leftHandedObstacleCollisions;
+    if (leftRocketCollisionRateEl) {
+        const rate = leftHandedRocketsSpawned > 0 ? (leftHandedObstacleCollisions / leftHandedRocketsSpawned * 100).toFixed(1) : '0.0';
+        leftRocketCollisionRateEl.textContent = rate;
     }
     
     // 切り替え後10秒間の記録を更新
@@ -2585,6 +2653,13 @@ function animate() {
                         const plumY = enemyCenterY - 30; // モンスターの中心より30ピクセル上に配置
                         const plum = new Plum({ x: enemyCenterX, y: plumY });
                         plums.push(plum);
+                        plumsSpawned++; // 梅の登場数をカウント
+                        // モード別カウンターを更新
+                        if (isRightHanded) {
+                            rightHandedPlumsSpawned++;
+                        } else {
+                            leftHandedPlumsSpawned++;
+                        }
                         console.log(`モンスターが梅アイコンに変わりました: 位置(${enemyCenterX.toFixed(1)}, ${plumY.toFixed(1)}), 配列サイズ: ${plums.length}`);
                     }
                     enemies.splice(i, 1); 
@@ -2667,6 +2742,12 @@ function animate() {
                     if (p.active && p.canCollect) {
                         p.active = false;
                         umeCollected++; // 梅の数を加算
+                        // モード別カウンターを更新
+                        if (isRightHanded) {
+                            rightHandedPlumsCollected++;
+                        } else {
+                            leftHandedPlumsCollected++;
+                        }
                         playSoundEffect(coinSound, '梅');
                         console.log(`梅アイコンを取得しました: 現在の梅数=${umeCollected}`);
                     }
