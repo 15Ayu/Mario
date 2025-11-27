@@ -460,19 +460,30 @@ class Obstacle {
         // 黒いミサイル風ロケット（横向き）
         ctx.save();
         
+        // ロケット本体のパスを定義
+        const rocketPath = new Path2D();
+        rocketPath.moveTo(x, y + h/2); // 左先端（進行方向）
+        rocketPath.lineTo(x + w*0.6, y + h*0.25); // 上側
+        rocketPath.lineTo(x + w*0.8, y + h*0.25); // 上側後
+        rocketPath.lineTo(x + w, y + h*0.15); // 右尾翼（上）
+        rocketPath.lineTo(x + w*0.9, y + h/2); // 中央後
+        rocketPath.lineTo(x + w, y + h*0.85); // 右尾翼（下）
+        rocketPath.lineTo(x + w*0.8, y + h*0.75); // 下側後
+        rocketPath.lineTo(x + w*0.6, y + h*0.75); // 下側
+        rocketPath.closePath();
+        
+        // 左利きモードの時は白い縁取りを描画
+        if (!isRightHanded) {
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.stroke(rocketPath);
+        }
+        
         // ロケット本体（黒、横向き）
         ctx.fillStyle = '#1a1a1a';
-        ctx.beginPath();
-        ctx.moveTo(x, y + h/2); // 左先端（進行方向）
-        ctx.lineTo(x + w*0.6, y + h*0.25); // 上側
-        ctx.lineTo(x + w*0.8, y + h*0.25); // 上側後
-        ctx.lineTo(x + w, y + h*0.15); // 右尾翼（上）
-        ctx.lineTo(x + w*0.9, y + h/2); // 中央後
-        ctx.lineTo(x + w, y + h*0.85); // 右尾翼（下）
-        ctx.lineTo(x + w*0.8, y + h*0.75); // 下側後
-        ctx.lineTo(x + w*0.6, y + h*0.75); // 下側
-        ctx.closePath();
-        ctx.fill();
+        ctx.fill(rocketPath);
         
         // 中央部分（少し明るいグレー）
         ctx.fillStyle = '#333';
