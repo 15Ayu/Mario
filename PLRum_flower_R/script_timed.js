@@ -134,11 +134,36 @@ let obstacleCollisions = 0; // ブロック衝突数
 let enemyCollisions = 0; // 敵衝突数
 let coinsCollected = 0; // 獲得コイン数
 
+// 撃退・獲得カウンター
+let rocketsDefeated = 0; // ロケット撃退数（踏みつけた回数）
+let enemiesDefeated = 0; // モンスター撃退数（踏みつけた回数）
+
+// 登場回数カウンター
+let rocketsSpawned = 0; // ロケット登場数
+let enemiesSpawned = 0; // モンスター登場数
+let coinsSpawned = 0; // コイン登場数
+
 // モード別統計カウンター
 let rightHandedObstacleCollisions = 0; // 右利きモードのロケット被弾回数
 let rightHandedEnemyCollisions = 0; // 右利きモードのモンスター衝突回数
 let leftHandedObstacleCollisions = 0; // 左利きモードのロケット被弾回数
 let leftHandedEnemyCollisions = 0; // 左利きモードのモンスター衝突回数
+
+// モード別撃退・獲得カウンター
+let rightHandedRocketsDefeated = 0; // 右利きモードのロケット撃退数
+let rightHandedEnemiesDefeated = 0; // 右利きモードのモンスター撃退数
+let rightHandedCoinsCollected = 0; // 右利きモードのコイン獲得数
+let leftHandedRocketsDefeated = 0; // 左利きモードのロケット撃退数
+let leftHandedEnemiesDefeated = 0; // 左利きモードのモンスター撃退数
+let leftHandedCoinsCollected = 0; // 左利きモードのコイン獲得数
+
+// モード別登場数カウンター
+let rightHandedRocketsSpawned = 0; // 右利きモードのロケット登場数
+let rightHandedEnemiesSpawned = 0; // 右利きモードのモンスター登場数
+let rightHandedCoinsSpawned = 0; // 右利きモードのコイン登場数
+let leftHandedRocketsSpawned = 0; // 左利きモードのロケット登場数
+let leftHandedEnemiesSpawned = 0; // 左利きモードのモンスター登場数
+let leftHandedCoinsSpawned = 0; // 左利きモードのコイン登場数
 
 // 切り替え後10秒間の記録
 let postSwitchRecords = []; // 切り替え後10秒間の記録配列
@@ -723,11 +748,36 @@ function init() {
     coinsCollected = 0;
     umeCollected = 0;
     
+    // 撃退・獲得カウンターをリセット
+    rocketsDefeated = 0;
+    enemiesDefeated = 0;
+    
+    // 登場回数カウンターをリセット
+    rocketsSpawned = 0;
+    enemiesSpawned = 0;
+    coinsSpawned = 0;
+    
     // モード別統計カウンターをリセット
     rightHandedObstacleCollisions = 0;
     rightHandedEnemyCollisions = 0;
     leftHandedObstacleCollisions = 0;
     leftHandedEnemyCollisions = 0;
+    
+    // モード別撃退・獲得カウンターをリセット
+    rightHandedRocketsDefeated = 0;
+    rightHandedEnemiesDefeated = 0;
+    rightHandedCoinsCollected = 0;
+    leftHandedRocketsDefeated = 0;
+    leftHandedEnemiesDefeated = 0;
+    leftHandedCoinsCollected = 0;
+    
+    // モード別登場数カウンターをリセット
+    rightHandedRocketsSpawned = 0;
+    rightHandedEnemiesSpawned = 0;
+    rightHandedCoinsSpawned = 0;
+    leftHandedRocketsSpawned = 0;
+    leftHandedEnemiesSpawned = 0;
+    leftHandedCoinsSpawned = 0;
     
     // 切り替え後10秒間の記録をリセット
     postSwitchRecords = [];
@@ -1786,6 +1836,38 @@ function drawScore() {
 
 // 統計情報を更新する関数
 function updateStatisticsDisplay() {
+    // 全体統計を更新
+    const totalRocketsDefeatedEl = document.getElementById('totalRocketsDefeated');
+    const totalRocketsSpawnedEl = document.getElementById('totalRocketsSpawned');
+    const totalRocketDefeatRateEl = document.getElementById('totalRocketDefeatRate');
+    const totalEnemiesDefeatedEl = document.getElementById('totalEnemiesDefeated');
+    const totalEnemiesSpawnedEl = document.getElementById('totalEnemiesSpawned');
+    const totalEnemyDefeatRateEl = document.getElementById('totalEnemyDefeatRate');
+    const totalCoinsCollectedEl = document.getElementById('totalCoinsCollected');
+    const totalCoinsSpawnedEl = document.getElementById('totalCoinsSpawned');
+    const totalCoinCollectionRateEl = document.getElementById('totalCoinCollectionRate');
+    
+    if (totalRocketsDefeatedEl) totalRocketsDefeatedEl.textContent = rocketsDefeated;
+    if (totalRocketsSpawnedEl) totalRocketsSpawnedEl.textContent = rocketsSpawned;
+    if (totalRocketDefeatRateEl) {
+        const rate = rocketsSpawned > 0 ? (rocketsDefeated / rocketsSpawned * 100).toFixed(1) : '0.0';
+        totalRocketDefeatRateEl.textContent = rate;
+    }
+    
+    if (totalEnemiesDefeatedEl) totalEnemiesDefeatedEl.textContent = enemiesDefeated;
+    if (totalEnemiesSpawnedEl) totalEnemiesSpawnedEl.textContent = enemiesSpawned;
+    if (totalEnemyDefeatRateEl) {
+        const rate = enemiesSpawned > 0 ? (enemiesDefeated / enemiesSpawned * 100).toFixed(1) : '0.0';
+        totalEnemyDefeatRateEl.textContent = rate;
+    }
+    
+    if (totalCoinsCollectedEl) totalCoinsCollectedEl.textContent = coinsCollected;
+    if (totalCoinsSpawnedEl) totalCoinsSpawnedEl.textContent = coinsSpawned;
+    if (totalCoinCollectionRateEl) {
+        const rate = coinsSpawned > 0 ? (coinsCollected / coinsSpawned * 100).toFixed(1) : '0.0';
+        totalCoinCollectionRateEl.textContent = rate;
+    }
+    
     // モード別統計を更新
     const rightObstacleElement = document.getElementById('rightHandedObstacleCount');
     const rightEnemyElement = document.getElementById('rightHandedEnemyCount');
@@ -1796,6 +1878,69 @@ function updateStatisticsDisplay() {
     if (rightEnemyElement) rightEnemyElement.textContent = rightHandedEnemyCollisions;
     if (leftObstacleElement) leftObstacleElement.textContent = leftHandedObstacleCollisions;
     if (leftEnemyElement) leftEnemyElement.textContent = leftHandedEnemyCollisions;
+    
+    // モード別撃退・獲得統計を更新
+    const rightRocketsDefeatedEl = document.getElementById('rightHandedRocketsDefeated');
+    const rightRocketsSpawnedEl = document.getElementById('rightHandedRocketsSpawned');
+    const rightRocketDefeatRateEl = document.getElementById('rightHandedRocketDefeatRate');
+    const rightEnemiesDefeatedEl = document.getElementById('rightHandedEnemiesDefeated');
+    const rightEnemiesSpawnedEl = document.getElementById('rightHandedEnemiesSpawned');
+    const rightEnemyDefeatRateEl = document.getElementById('rightHandedEnemyDefeatRate');
+    const rightCoinsCollectedEl = document.getElementById('rightHandedCoinsCollected');
+    const rightCoinsSpawnedEl = document.getElementById('rightHandedCoinsSpawned');
+    const rightCoinCollectionRateEl = document.getElementById('rightHandedCoinCollectionRate');
+    
+    if (rightRocketsDefeatedEl) rightRocketsDefeatedEl.textContent = rightHandedRocketsDefeated;
+    if (rightRocketsSpawnedEl) rightRocketsSpawnedEl.textContent = rightHandedRocketsSpawned;
+    if (rightRocketDefeatRateEl) {
+        const rate = rightHandedRocketsSpawned > 0 ? (rightHandedRocketsDefeated / rightHandedRocketsSpawned * 100).toFixed(1) : '0.0';
+        rightRocketDefeatRateEl.textContent = rate;
+    }
+    
+    if (rightEnemiesDefeatedEl) rightEnemiesDefeatedEl.textContent = rightHandedEnemiesDefeated;
+    if (rightEnemiesSpawnedEl) rightEnemiesSpawnedEl.textContent = rightHandedEnemiesSpawned;
+    if (rightEnemyDefeatRateEl) {
+        const rate = rightHandedEnemiesSpawned > 0 ? (rightHandedEnemiesDefeated / rightHandedEnemiesSpawned * 100).toFixed(1) : '0.0';
+        rightEnemyDefeatRateEl.textContent = rate;
+    }
+    
+    if (rightCoinsCollectedEl) rightCoinsCollectedEl.textContent = rightHandedCoinsCollected;
+    if (rightCoinsSpawnedEl) rightCoinsSpawnedEl.textContent = rightHandedCoinsSpawned;
+    if (rightCoinCollectionRateEl) {
+        const rate = rightHandedCoinsSpawned > 0 ? (rightHandedCoinsCollected / rightHandedCoinsSpawned * 100).toFixed(1) : '0.0';
+        rightCoinCollectionRateEl.textContent = rate;
+    }
+    
+    const leftRocketsDefeatedEl = document.getElementById('leftHandedRocketsDefeated');
+    const leftRocketsSpawnedEl = document.getElementById('leftHandedRocketsSpawned');
+    const leftRocketDefeatRateEl = document.getElementById('leftHandedRocketDefeatRate');
+    const leftEnemiesDefeatedEl = document.getElementById('leftHandedEnemiesDefeated');
+    const leftEnemiesSpawnedEl = document.getElementById('leftHandedEnemiesSpawned');
+    const leftEnemyDefeatRateEl = document.getElementById('leftHandedEnemyDefeatRate');
+    const leftCoinsCollectedEl = document.getElementById('leftHandedCoinsCollected');
+    const leftCoinsSpawnedEl = document.getElementById('leftHandedCoinsSpawned');
+    const leftCoinCollectionRateEl = document.getElementById('leftHandedCoinCollectionRate');
+    
+    if (leftRocketsDefeatedEl) leftRocketsDefeatedEl.textContent = leftHandedRocketsDefeated;
+    if (leftRocketsSpawnedEl) leftRocketsSpawnedEl.textContent = leftHandedRocketsSpawned;
+    if (leftRocketDefeatRateEl) {
+        const rate = leftHandedRocketsSpawned > 0 ? (leftHandedRocketsDefeated / leftHandedRocketsSpawned * 100).toFixed(1) : '0.0';
+        leftRocketDefeatRateEl.textContent = rate;
+    }
+    
+    if (leftEnemiesDefeatedEl) leftEnemiesDefeatedEl.textContent = leftHandedEnemiesDefeated;
+    if (leftEnemiesSpawnedEl) leftEnemiesSpawnedEl.textContent = leftHandedEnemiesSpawned;
+    if (leftEnemyDefeatRateEl) {
+        const rate = leftHandedEnemiesSpawned > 0 ? (leftHandedEnemiesDefeated / leftHandedEnemiesSpawned * 100).toFixed(1) : '0.0';
+        leftEnemyDefeatRateEl.textContent = rate;
+    }
+    
+    if (leftCoinsCollectedEl) leftCoinsCollectedEl.textContent = leftHandedCoinsCollected;
+    if (leftCoinsSpawnedEl) leftCoinsSpawnedEl.textContent = leftHandedCoinsSpawned;
+    if (leftCoinCollectionRateEl) {
+        const rate = leftHandedCoinsSpawned > 0 ? (leftHandedCoinsCollected / leftHandedCoinsSpawned * 100).toFixed(1) : '0.0';
+        leftCoinCollectionRateEl.textContent = rate;
+    }
     
     // 切り替え後10秒間の記録を更新
     const recordsListElement = document.getElementById('postSwitchRecordsList');
@@ -1956,9 +2101,23 @@ function generateObjects() {
                     x: newX + coinSpacing * (i + 1), 
                     y: newY - 40 
                 }));
+                coinsSpawned++; // コイン登場数をカウント
+                // モード別カウンターを更新
+                if (isRightHanded) {
+                    rightHandedCoinsSpawned++;
+                } else {
+                    leftHandedCoinsSpawned++;
+                }
             }
         } else if (rand < 0.95) { 
             enemies.push(new Enemy({ x: newX + width / 2, y: newY - 40, platform: platform })); 
+            enemiesSpawned++; // モンスター登場数をカウント
+            // モード別カウンターを更新
+            if (isRightHanded) {
+                rightHandedEnemiesSpawned++;
+            } else {
+                leftHandedEnemiesSpawned++;
+            }
         }
         lastPlatformX = newX + width;
     }
@@ -1968,6 +2127,13 @@ function generateObjects() {
         const newX = lastObstacleX + gap;
         const newY = Math.random() * (canvas.height - 150) + 50;
         obstacles.push(new Obstacle({ x: newX, y: newY }));
+        rocketsSpawned++; // ロケット登場数をカウント
+        // モード別カウンターを更新
+        if (isRightHanded) {
+            rightHandedRocketsSpawned++;
+        } else {
+            leftHandedRocketsSpawned++;
+        }
         lastObstacleX = newX;
     }
 }
@@ -2116,6 +2282,13 @@ function animate() {
                     o.fallVelocity = 2; // 初期落下速度
                     o.collided = true; // 衝突済みフラグを立てる
                     score += 100;
+                    rocketsDefeated++; // ロケット撃退数をカウント
+                    // モード別カウンターを更新
+                    if (isRightHanded) {
+                        rightHandedRocketsDefeated++;
+                    } else {
+                        leftHandedRocketsDefeated++;
+                    }
                     player.velocity.y = -JUMP_POWER / 2;
                     // ロケットを踏みつけた時の効果音
                     playSoundEffect(retroSound, 'レトロアクション');
@@ -2162,6 +2335,13 @@ function animate() {
                     }
                     enemies.splice(i, 1); 
                     score += 100; 
+                    enemiesDefeated++; // モンスター撃退数をカウント
+                    // モード別カウンターを更新
+                    if (isRightHanded) {
+                        rightHandedEnemiesDefeated++;
+                    } else {
+                        leftHandedEnemiesDefeated++;
+                    }
                     player.velocity.y = -JUMP_POWER / 2;
                     // 敵を踏み潰した時の効果音
                     playSoundEffect(retroSound, 'レトロアクション');
@@ -2197,6 +2377,12 @@ function animate() {
                     c.active = false; 
                     score += COIN_SCORE; 
                     coinsCollected++;
+                    // モード別カウンターを更新
+                    if (isRightHanded) {
+                        rightHandedCoinsCollected++;
+                    } else {
+                        leftHandedCoinsCollected++;
+                    }
                     // コイン獲得時の効果音
                     playSoundEffect(coinSound, 'コイン');
                 } 

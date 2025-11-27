@@ -66,17 +66,43 @@
     <div id="statisticsDisplay">
         <h2>📊 統計情報</h2>
         <div class="stats-section">
+            <h3>全体統計</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h4>ロケット</h4>
+                    <p>撃退数: <span id="totalRocketsDefeated">0</span> / 登場数: <span id="totalRocketsSpawned">0</span></p>
+                    <p>撃退率: <span id="totalRocketDefeatRate">0.0</span>%</p>
+                </div>
+                <div class="stat-item">
+                    <h4>モンスター</h4>
+                    <p>撃退数: <span id="totalEnemiesDefeated">0</span> / 登場数: <span id="totalEnemiesSpawned">0</span></p>
+                    <p>撃退率: <span id="totalEnemyDefeatRate">0.0</span>%</p>
+                </div>
+                <div class="stat-item">
+                    <h4>コイン</h4>
+                    <p>獲得数: <span id="totalCoinsCollected">0</span> / 登場数: <span id="totalCoinsSpawned">0</span></p>
+                    <p>獲得率: <span id="totalCoinCollectionRate">0.0</span>%</p>
+                </div>
+            </div>
+        </div>
+        <div class="stats-section">
             <h3>モード別統計</h3>
             <div class="stats-grid">
                 <div class="stat-item">
                     <h4>右利きモード</h4>
                     <p>ロケット被弾: <span id="rightHandedObstacleCount">0</span>回</p>
                     <p>モンスター衝突: <span id="rightHandedEnemyCount">0</span>回</p>
+                    <p>ロケット撃退: <span id="rightHandedRocketsDefeated">0</span> / <span id="rightHandedRocketsSpawned">0</span> (<span id="rightHandedRocketDefeatRate">0.0</span>%)</p>
+                    <p>モンスター撃退: <span id="rightHandedEnemiesDefeated">0</span> / <span id="rightHandedEnemiesSpawned">0</span> (<span id="rightHandedEnemyDefeatRate">0.0</span>%)</p>
+                    <p>コイン獲得: <span id="rightHandedCoinsCollected">0</span> / <span id="rightHandedCoinsSpawned">0</span> (<span id="rightHandedCoinCollectionRate">0.0</span>%)</p>
                 </div>
                 <div class="stat-item">
                     <h4>左利きモード</h4>
                     <p>ロケット被弾: <span id="leftHandedObstacleCount">0</span>回</p>
                     <p>モンスター衝突: <span id="leftHandedEnemyCount">0</span>回</p>
+                    <p>ロケット撃退: <span id="leftHandedRocketsDefeated">0</span> / <span id="leftHandedRocketsSpawned">0</span> (<span id="leftHandedRocketDefeatRate">0.0</span>%)</p>
+                    <p>モンスター撃退: <span id="leftHandedEnemiesDefeated">0</span> / <span id="leftHandedEnemiesSpawned">0</span> (<span id="leftHandedEnemyDefeatRate">0.0</span>%)</p>
+                    <p>コイン獲得: <span id="leftHandedCoinsCollected">0</span> / <span id="leftHandedCoinsSpawned">0</span> (<span id="leftHandedCoinCollectionRate">0.0</span>%)</p>
                 </div>
             </div>
         </div>
